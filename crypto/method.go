@@ -20,7 +20,7 @@ package crypto
 
 import (
 	"errors"
-	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-lib/log"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
