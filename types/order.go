@@ -19,8 +19,8 @@
 package types
 
 import (
-	"github.com/Loopring/relay/crypto"
-	"github.com/Loopring/relay/log"
+	"fmt"
+	"github.com/Loopring/relay-lib/crypto"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"time"
@@ -170,8 +170,7 @@ func (o *Order) SignerAddress() (common.Address, error) {
 	sig, _ := crypto.VRSToSig(o.V, o.R.Bytes(), o.S.Bytes())
 
 	if addressBytes, err := crypto.SigToAddress(o.Hash.Bytes(), sig); nil != err {
-		log.Errorf("type,order signer address error:%s", err.Error())
-		return *address, err
+		return *address, fmt.Errorf("type,order signer address error:%s", err.Error())
 	} else {
 		address.SetBytes(addressBytes)
 		return *address, nil

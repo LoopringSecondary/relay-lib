@@ -20,8 +20,8 @@ package types_test
 
 import (
 	"encoding/json"
-	"github.com/Loopring/relay/crypto"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-lib/crypto"
+	"github.com/Loopring/relay-lib/types"
 	"math/big"
 	"testing"
 )
