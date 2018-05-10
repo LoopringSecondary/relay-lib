@@ -32,6 +32,13 @@ type ABI struct {
 	Events      map[string]Event
 }
 
+// New returns a parsed ABI struct and error if unmarshal failed
+func New(abiStr string) (*ABI, error) {
+	a := &ABI{}
+	err := a.UnmarshalJSON([]byte(abiStr))
+	return a, err
+}
+
 // JSON returns a parsed ABI interface and error if it failed.
 func JSON(reader io.Reader) (ABI, error) {
 	dec := json.NewDecoder(reader)
