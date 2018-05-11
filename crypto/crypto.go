@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"strings"
@@ -122,11 +121,11 @@ func (c EthPrivateKeyCrypto) Address() common.Address {
 }
 
 func (c EthPrivateKeyCrypto) SignTx(addr common.Address, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
-	var signer ethTypes.Signer
+	var signer types.Signer
 	if chainID != nil {
-		signer = ethTypes.NewEIP155Signer(chainID)
+		signer = types.NewEIP155Signer(chainID)
 	} else {
-		signer = ethTypes.HomesteadSigner{}
+		signer = types.HomesteadSigner{}
 	}
 	if signature, err := ethCrypto.Sign(signer.Hash(tx).Bytes(), c.privateKey); nil != err {
 		return tx, err
