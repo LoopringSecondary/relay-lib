@@ -306,19 +306,6 @@ func (ord *OrderState) ResolveStatus(allowance, balance *big.Int) {
 		ord.Status = ORDER_EXPIRE
 		return
 	}
-
-	//cancelOrFilled := new(big.Int).Add(ord.CancelledAmountS, ord.DealtAmountS)
-	//finished := new(big.Int).Add(cancelOrFilled, ord.SplitAmountS)
-
-	//if finished.Cmp(allowance) >= 0 {
-	//	ord.Status = ORDER_ALLOWANCE_INSUFFICIENT
-	//	return
-	//}
-	//
-	//if finished.Cmp(balance) >= 0 {
-	//	ord.Status = ORDER_BALANCE_INSUFFICIENT
-	//	return
-	//}
 }
 
 //const (
