@@ -18,7 +18,7 @@ type ZkLock struct {
 	lockMap map[string]*zk.Lock
 }
 
-const basePath = "/relay_lock"
+const basePath = "/loopring_lock"
 
 func NewLock(config ZkLockConfig) (*ZkLock, error) {
 	if !config.NeedZkLock {
