@@ -37,12 +37,8 @@ const (
 	ORDER_CUTOFF   OrderStatus = 5
 	ORDER_EXPIRE   OrderStatus = 6
 	ORDER_PENDING  OrderStatus = 7
-	ORDER_PENDING_FOR_P2P  OrderStatus = 17
 	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 7
 	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 8
-
-	ORDER_TYPE_MARKET = "market_order"
-	ORDER_TYPE_P2P = "p2p_order"
 )
 
 //go:generate gencodec -type Order -field-override orderMarshaling -out gen_order_json.go
@@ -71,7 +67,6 @@ type Order struct {
 	CreateTime            int64                      `json:"createTime"`
 	PowNonce              uint64                     `json:"powNonce"`
 	Side                  string                     `json:"side"`
-	OrderType             string                     `json:"orderType"`
 }
 
 type orderMarshaling struct {
@@ -89,7 +84,7 @@ type OrderJsonRequest struct {
 	TokenS          common.Address             `json:"tokenS" gencodec:"required"`          // 卖出erc20代币智能合约地址
 	TokenB          common.Address             `json:"tokenB" gencodec:"required"`          // 买入erc20代币智能合约地址
 	AuthAddr        common.Address             `json:"authAddr" gencodec:"required"`        //
-	AuthPrivateKey  crypto.EthPrivateKeyCrypto `json:"authPrivateKey"`  //
+	AuthPrivateKey  crypto.EthPrivateKeyCrypto `json:"authPrivateKey" gencodec:"required"`  //
 	WalletAddress   common.Address             `json:"walletAddress" gencodec:"required"`
 	AmountS         *big.Int                   `json:"amountS" gencodec:"required"`    // 卖出erc20代币数量上限
 	AmountB         *big.Int                   `json:"amountB" gencodec:"required"`    // 买入erc20代币数量上限
@@ -108,7 +103,6 @@ type OrderJsonRequest struct {
 	CreateTime            int64          `json:"createTime"`
 	PowNonce              uint64         `json:"powNonce"`
 	Side                  string         `json:"side"`
-	OrderType             string         `json:"orderType"`
 }
 
 type orderJsonRequestMarshaling struct {
@@ -297,9 +291,7 @@ func (ord *OrderState) IsExpired() bool {
 }
 
 func (ord *OrderState) IsEffective() bool {
-	if (ord.Status == ORDER_NEW || ord.Status == ORDER_PARTIAL) &&
-		ord.RawOrder.ValidSince.Int64() <= time.Now().Unix() &&
-		ord.RawOrder.ValidUntil.Int64() > time.Now().Unix() {
+	if (ord.Status == ORDER_NEW || ord.Status == ORDER_PARTIAL) && ord.RawOrder.ValidSince.Int64() >= time.Now().Unix() {
 		return true
 	}
 	return false
@@ -413,6 +405,5 @@ func ToOrder(request *OrderJsonRequest) *Order {
 	order.Owner = request.Owner
 	order.WalletAddress = request.WalletAddress
 	order.PowNonce = request.PowNonce
-	order.OrderType = request.OrderType
 	return order
 }

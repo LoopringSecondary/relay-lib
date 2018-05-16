@@ -39,7 +39,6 @@ func (o Order) MarshalJSON() ([]byte, error) {
 		CreateTime            int64                      `json:"createTime"`
 		PowNonce              uint64                     `json:"powNonce"`
 		Side                  string                     `json:"side"`
-		OrderType             string                     `json:"orderType"`
 	}
 	var enc Order
 	enc.Protocol = o.Protocol
@@ -66,7 +65,6 @@ func (o Order) MarshalJSON() ([]byte, error) {
 	enc.CreateTime = o.CreateTime
 	enc.PowNonce = o.PowNonce
 	enc.Side = o.Side
-	enc.OrderType = o.OrderType
 	return json.Marshal(&enc)
 }
 
@@ -96,7 +94,6 @@ func (o *Order) UnmarshalJSON(input []byte) error {
 		CreateTime            *int64                      `json:"createTime"`
 		PowNonce              *uint64                     `json:"powNonce"`
 		Side                  *string                     `json:"side"`
-		OrderType             *string                     `json:"orderType"`
 	}
 	var dec Order
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -189,9 +186,6 @@ func (o *Order) UnmarshalJSON(input []byte) error {
 	}
 	if dec.Side != nil {
 		o.Side = *dec.Side
-	}
-	if dec.OrderType != nil {
-		o.OrderType = *dec.OrderType
 	}
 	return nil
 }

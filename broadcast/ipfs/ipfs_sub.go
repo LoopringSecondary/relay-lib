@@ -20,12 +20,10 @@ package ipfs
 
 import (
 	"fmt"
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/eventemiter"
-	"github.com/Loopring/relay/gateway/ipfs"
-	"github.com/Loopring/relay/types"
+	"github.com/Loopring/relay-lib/eventemitter"
+	"github.com/Loopring/relay-lib/types"
 
-	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-lib/log"
 	"sync"
 )
 
@@ -48,14 +46,14 @@ type IPFSSubService interface {
 }
 
 type IPFSSubServiceImpl struct {
-	options config.IpfsOptions
+	options *IpfsOptions
 	subs    map[string]*subProxy
 	stop    chan struct{}
 	mtx     sync.Mutex
 	url     string
 }
 
-func NewIPFSSubService(options config.IpfsOptions) *IPFSSubServiceImpl {
+func NewIPFSSubService(options *IpfsOptions) *IPFSSubServiceImpl {
 	l := &IPFSSubServiceImpl{}
 	l.url = options.Url()
 	l.options = options
@@ -140,14 +138,14 @@ func (l *IPFSSubServiceImpl) Restart() {
 
 type subProxy struct {
 	topic    string
-	iterator *ipfs.PubSubSubscription
+	iterator *PubSubSubscription
 	stop     chan struct{}
 }
 
 func (l *IPFSSubServiceImpl) newSubProxy(topic string) (*subProxy, error) {
 	s := &subProxy{}
 	s.topic = topic
-	scribe, err := ipfs.PubSubSubscribe(l.url, topic)
+	scribe, err := PubSubSubscribe(l.url, topic)
 	if err != nil {
 		return nil, err
 	}

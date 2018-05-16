@@ -392,7 +392,6 @@ func (b *ChangedOfBlock) cacheBalanceKey() string {
 func (b *ChangedOfBlock) cacheBalanceField(owner, token common.Address) []byte {
 	return append(owner.Bytes(), token.Bytes()...)
 }
-
 func (b *ChangedOfBlock) parseCacheBalanceField(data []byte) (owner, token common.Address) {
 	return common.BytesToAddress(data[0:20]), common.BytesToAddress(data[20:])
 }

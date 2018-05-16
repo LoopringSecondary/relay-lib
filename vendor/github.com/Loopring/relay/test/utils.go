@@ -27,12 +27,10 @@ import (
 	"github.com/Loopring/relay/ethaccessor"
 	"github.com/Loopring/relay/log"
 	"github.com/Loopring/relay/market"
-	marketLib "github.com/Loopring/relay/market"
 	"github.com/Loopring/relay/market/util"
 	"github.com/Loopring/relay/marketcap"
-	"github.com/Loopring/relay/miner"
-	"github.com/Loopring/relay/miner/timing_matcher"
 	"github.com/Loopring/relay/ordermanager"
+	"github.com/Loopring/relay/txmanager"
 	"github.com/Loopring/relay/types"
 	"github.com/Loopring/relay/usermanager"
 	"github.com/ethereum/go-ethereum/accounts"
@@ -61,8 +59,8 @@ type TestEntity struct {
 }
 
 const (
-	Version   = "v1.5"
-	DebugFile = "relay.toml"
+	Version   = "v1.5.1"
+	DebugFile = "debug.toml"
 )
 
 var (
@@ -79,15 +77,15 @@ var (
 func init() {
 	Path = strings.TrimSuffix(os.Getenv("GOPATH"), "/") + "/src/github.com/Loopring/relay/config/" + DebugFile
 	cfg = loadConfig()
-	//rds = GenerateDaoService()
-	//txmanager.NewTxView(rds)
+	rds = GenerateDaoService()
+	txmanager.NewTxView(rds)
 	cache.NewCache(cfg.Redis)
-	//util.Initialize(cfg.Market)
-	//entity = loadTestData()
-	//ethaccessor.Initialize(cfg.Accessor, cfg.Common, util.WethTokenAddress())
-	//unlockAccounts()
-	//protocol = common.HexToAddress(cfg.Common.ProtocolImpl.Address[Version])
-	//delegate = ethaccessor.ProtocolAddresses()[protocol].DelegateAddress
+	util.Initialize(cfg.Market)
+	entity = loadTestData()
+	ethaccessor.Initialize(cfg.Accessor, cfg.Common, util.WethTokenAddress())
+	unlockAccounts()
+	protocol = common.HexToAddress(cfg.Common.ProtocolImpl.Address[Version])
+	delegate = ethaccessor.ProtocolAddresses()[protocol].DelegateAddress
 }
 
 func loadConfig() *config.GlobalConfig {
@@ -225,7 +223,7 @@ func CreateOrder(tokenS, tokenB, owner common.Address, amountS, amountB, lrcFee 
 	order.AmountS = amountS
 	order.AmountB = amountB
 	order.ValidSince = big.NewInt(time.Now().Unix())
-	order.ValidUntil = big.NewInt(time.Now().Unix() + 2000)
+	order.ValidUntil = big.NewInt(time.Now().Unix() + 8640000)
 	order.LrcFee = lrcFee
 	order.BuyNoMoreThanAmountB = false
 	order.MarginSplitPercentage = 0
@@ -417,10 +415,6 @@ func SetTokenBalances() {
 			}
 		}
 	}
-}
-
-func GenerateTimingMatcher(matcherOptions *config.TimingMatcher, submitter *miner.RingSubmitter, evaluator *miner.Evaluator, om ordermanager.OrderManager, accountManager *marketLib.AccountManager, rds dao.RdsService) {
-	timing_matcher.NewTimingMatcher(matcherOptions, submitter, evaluator, om, accountManager, rds)
 }
 
 // 给lrc，rdn等dummy合约支持的代币充值
