@@ -43,7 +43,7 @@ func IsInit() bool {
 	return nil != loopringParams
 }
 
-func InitLoopringAccessor(options LoopringProtocolOptions) error {
+func Initialize(options LoopringProtocolOptions) error {
 	if !accessor.IsInit() {
 		log.Fatalf("must init accessor first")
 	}
