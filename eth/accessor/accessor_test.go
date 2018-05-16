@@ -26,7 +26,7 @@ import (
 	"github.com/Loopring/relay-lib/eth/accessor"
 	myethTypes "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/log"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/Loopring/go-ethereum/common"
 	"go.uber.org/zap"
 	"testing"
 )
