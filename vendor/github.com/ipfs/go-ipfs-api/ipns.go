@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 )
-//iterator next err: invalid character 'y' looking for beginning of value
+
 // Publish updates a mutable name to point to a given value
 func (s *Shell) Publish(node string, value string) error {
 	args := []string{value}

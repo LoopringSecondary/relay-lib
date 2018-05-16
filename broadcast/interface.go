@@ -36,9 +36,9 @@ type ISubscriber interface {
 	sub() (err error)
 }
 
-func NewPubSubManager(cfg PubSubConfig) PubSubManager {
-	return PubSubManager{}
-}
+//func NewPubSubManager(cfg PubSubConfig) PubSubManager {
+//	return PubSubManager{}
+//}
 
 func (pb *PubSubManager) Start() {
 
