@@ -53,3 +53,7 @@ func ReleaseLock(lockName string) error {
 		return fmt.Errorf("Try release not exists lock: %s\n", lockName)
 	}
 }
+
+func IsInit() bool {
+	return nil != zl
+}
