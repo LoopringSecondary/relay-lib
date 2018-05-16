@@ -1,0 +1,144 @@
+2018-05-04T09:41:02.676+0800	info	market util,supported token:EOS
+2018-05-04T09:41:02.676+0800	info	market util,supported token:RDN
+2018-05-04T09:41:02.676+0800	info	market util,supported token:KNC
+2018-05-04T09:41:02.676+0800	info	market util,supported token:AE
+2018-05-04T09:41:02.676+0800	info	market util,supported token:IND
+2018-05-04T09:41:02.676+0800	info	market util,supported token:SAN
+2018-05-04T09:41:02.676+0800	info	market util,supported token:ZRX
+2018-05-04T09:41:02.676+0800	info	market util,supported token:BAT
+2018-05-04T09:41:02.676+0800	info	market util,supported market:BAT-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:BAT-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:RDN-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:RDN-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:KNC-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:KNC-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:IND-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:IND-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:EOS-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:EOS-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:AE-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:AE-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:SAN-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:SAN-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:ZRX-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:ZRX-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:WETH-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:WETH-WETH
+2018-05-04T09:41:02.677+0800	info	market util,supported market:LRC-LRC
+2018-05-04T09:41:02.677+0800	info	market util,supported market:LRC-WETH
+2018-05-04T09:41:03.312+0800	debug	token:0x639687b7f8501f174356D3aCb1972f749021CCD0, priceUsd:776.09
+2018-05-04T09:41:03.312+0800	debug	token:0x33B876ad72D8257515aC95a6D54d84438b7401A7, priceUsd:17.79
+2018-05-04T09:41:03.312+0800	debug	token:0xD852Cc4390be7EdD4F38b4DB1bD645CB22A70dB8, priceUsd:4.53
+2018-05-04T09:41:03.312+0800	debug	token:0x3cbCeE9Ff904ee0351B0Ff2c05E08e860C94A5eA, priceUsd:1.49
+2018-05-04T09:41:03.312+0800	debug	token:0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f, priceUsd:0.91
+2018-05-04T09:41:03.312+0800	debug	token:0x0D4CEF17D1935930492AD670f7007B07D6DBfB51, priceUsd:2.54
+2018-05-04T09:41:03.312+0800	debug	token:0x686171D891E3d6E4551C81b48cB7Fd7AA7101251, priceUsd:2.48
+2018-05-04T09:41:03.312+0800	debug	token:0x1fA02762Bd046abd30f5Bf3513F9347d5e6b4257, priceUsd:1.98
+2018-05-04T09:41:03.312+0800	debug	token:0x4d46AeA373Ea6a6EC6cBBF7f00724A6F61899C27, priceUsd:0.05
+2018-05-04T09:41:03.313+0800	error	token:BAT, id:Basic Attention Token, can't sync marketcap at time:1525398063, it't last updated time:0
+github.com/Loopring/relay/log.Errorf
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/log/log.go:63
+github.com/Loopring/relay/marketcap.(*CapProvider_CoinMarketCap).syncMarketCap
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:315
+github.com/Loopring/relay/marketcap.NewMarketCapProvider
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:355
+command-line-arguments_test.TestStart
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider_test.go:34
+testing.tRunner
+	/usr/local/Cellar/go/1.9.2/libexec/src/testing/testing.go:746
+2018-05-04T09:42:48.174+0800	info	market util,supported token:EOS
+2018-05-04T09:42:48.174+0800	info	market util,supported token:RDN
+2018-05-04T09:42:48.174+0800	info	market util,supported token:KNC
+2018-05-04T09:42:48.174+0800	info	market util,supported token:AE
+2018-05-04T09:42:48.174+0800	info	market util,supported token:IND
+2018-05-04T09:42:48.174+0800	info	market util,supported token:SAN
+2018-05-04T09:42:48.174+0800	info	market util,supported token:ZRX
+2018-05-04T09:42:48.174+0800	info	market util,supported token:BAT
+2018-05-04T09:42:48.174+0800	info	market util,supported market:EOS-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:EOS-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:RDN-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:RDN-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:KNC-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:KNC-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:IND-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:IND-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:SAN-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:SAN-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:ZRX-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:ZRX-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:BAT-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:BAT-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:LRC-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:LRC-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:AE-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:AE-WETH
+2018-05-04T09:42:48.174+0800	info	market util,supported market:WETH-LRC
+2018-05-04T09:42:48.174+0800	info	market util,supported market:WETH-WETH
+2018-05-04T09:42:48.655+0800	debug	token:0x639687b7f8501f174356D3aCb1972f749021CCD0, priceUsd:776.09
+2018-05-04T09:42:48.655+0800	debug	token:0x33B876ad72D8257515aC95a6D54d84438b7401A7, priceUsd:17.79
+2018-05-04T09:42:48.655+0800	debug	token:0xD852Cc4390be7EdD4F38b4DB1bD645CB22A70dB8, priceUsd:4.53
+2018-05-04T09:42:48.655+0800	debug	token:0x3cbCeE9Ff904ee0351B0Ff2c05E08e860C94A5eA, priceUsd:1.49
+2018-05-04T09:42:48.655+0800	debug	token:0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f, priceUsd:0.91
+2018-05-04T09:42:48.655+0800	debug	token:0x0D4CEF17D1935930492AD670f7007B07D6DBfB51, priceUsd:2.54
+2018-05-04T09:42:48.655+0800	debug	token:0x686171D891E3d6E4551C81b48cB7Fd7AA7101251, priceUsd:2.48
+2018-05-04T09:42:48.655+0800	debug	token:0x1fA02762Bd046abd30f5Bf3513F9347d5e6b4257, priceUsd:1.98
+2018-05-04T09:42:48.655+0800	debug	token:0x4d46AeA373Ea6a6EC6cBBF7f00724A6F61899C27, priceUsd:0.05
+2018-05-04T09:42:48.655+0800	error	token:BAT, id:Basic Attention Token, can't sync marketcap at time:1525398168, it't last updated time:0
+github.com/Loopring/relay/log.Errorf
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/log/log.go:63
+github.com/Loopring/relay/marketcap.(*CapProvider_CoinMarketCap).syncMarketCap
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:316
+github.com/Loopring/relay/marketcap.NewMarketCapProvider
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:356
+command-line-arguments_test.TestStart
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider_test.go:34
+testing.tRunner
+	/usr/local/Cellar/go/1.9.2/libexec/src/testing/testing.go:746
+2018-05-04T09:44:14.304+0800	info	market util,supported token:EOS
+2018-05-04T09:44:14.304+0800	info	market util,supported token:RDN
+2018-05-04T09:44:14.304+0800	info	market util,supported token:KNC
+2018-05-04T09:44:14.304+0800	info	market util,supported token:AE
+2018-05-04T09:44:14.304+0800	info	market util,supported token:IND
+2018-05-04T09:44:14.304+0800	info	market util,supported token:SAN
+2018-05-04T09:44:14.304+0800	info	market util,supported token:ZRX
+2018-05-04T09:44:14.304+0800	info	market util,supported token:BAT
+2018-05-04T09:44:14.304+0800	info	market util,supported market:AE-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:AE-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:LRC-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:LRC-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:WETH-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:WETH-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:RDN-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:RDN-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:KNC-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:KNC-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:ZRX-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:ZRX-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:BAT-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:BAT-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:EOS-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:EOS-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:IND-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:IND-WETH
+2018-05-04T09:44:14.304+0800	info	market util,supported market:SAN-LRC
+2018-05-04T09:44:14.304+0800	info	market util,supported market:SAN-WETH
+2018-05-04T09:44:16.099+0800	debug	token:0x639687b7f8501f174356D3aCb1972f749021CCD0, priceUsd:776.09
+2018-05-04T09:44:16.099+0800	debug	token:0x33B876ad72D8257515aC95a6D54d84438b7401A7, priceUsd:17.79
+2018-05-04T09:44:16.099+0800	debug	token:0xD852Cc4390be7EdD4F38b4DB1bD645CB22A70dB8, priceUsd:4.53
+2018-05-04T09:44:16.099+0800	debug	token:0x3cbCeE9Ff904ee0351B0Ff2c05E08e860C94A5eA, priceUsd:1.49
+2018-05-04T09:44:16.099+0800	debug	token:0xfe5aFA7BfF3394359af2D277aCc9f00065CdBe2f, priceUsd:0.91
+2018-05-04T09:44:16.099+0800	debug	token:0x0D4CEF17D1935930492AD670f7007B07D6DBfB51, priceUsd:2.54
+2018-05-04T09:44:16.099+0800	debug	token:0x686171D891E3d6E4551C81b48cB7Fd7AA7101251, priceUsd:2.48
+2018-05-04T09:44:16.099+0800	debug	token:0x1fA02762Bd046abd30f5Bf3513F9347d5e6b4257, priceUsd:1.98
+2018-05-04T09:44:16.100+0800	debug	token:0x4d46AeA373Ea6a6EC6cBBF7f00724A6F61899C27, priceUsd:0.05
+2018-05-04T09:44:16.100+0800	error	token:BAT, id:Basic Attention Token, can't sync marketcap at time:1525398256, it't last updated time:0
+github.com/Loopring/relay/log.Errorf
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/log/log.go:63
+github.com/Loopring/relay/marketcap.(*CapProvider_CoinMarketCap).syncMarketCap
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:316
+github.com/Loopring/relay/marketcap.NewMarketCapProvider
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider.go:357
+command-line-arguments_test.TestStart
+	/Users/jaice/work/gopath/src/github.com/Loopring/relay/marketcap/capprovider_test.go:34
+testing.tRunner
+	/usr/local/Cellar/go/1.9.2/libexec/src/testing/testing.go:746
