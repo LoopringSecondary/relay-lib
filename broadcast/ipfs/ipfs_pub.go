@@ -22,8 +22,8 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ipfs/go-ipfs-api"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type IPFSPubService interface {

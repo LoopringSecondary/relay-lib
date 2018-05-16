@@ -23,11 +23,11 @@ import (
 	"github.com/Loopring/relay-lib/cache"
 	"github.com/Loopring/relay-lib/cache/redis"
 	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/zap"
 	"testing"
-	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func init() {
@@ -68,7 +68,7 @@ func init() {
 
 func TestInitLoopringAccessor(t *testing.T) {
 	addrs := loopringaccessor.DelegateAddresses()
-	for addr,_ := range addrs {
+	for addr, _ := range addrs {
 		t.Log(addr.Hex())
 	}
 }
@@ -85,14 +85,12 @@ func TestBatchErc20Balance(t *testing.T) {
 	req2.Token = common.HexToAddress("0xef68e7c694f40c8202821edf525de3782458639f")
 	req2.Owner = common.HexToAddress("0x3acdf3e3d8ec52a768083f718e763727b0210650")
 
-
 	reqs = append(reqs, req1, req2)
 
 	loopringaccessor.BatchErc20Balance("latest", reqs)
 
-	for _,req := range reqs {
+	for _, req := range reqs {
 		t.Logf("owner:%s, token:%s, balance:%s", req.Owner.Hex(), req.Token.Hex(), req.Balance.BigInt().String())
 	}
-
 
 }
