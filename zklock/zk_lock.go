@@ -53,14 +53,15 @@ func Initialize(config ZkLockConfig) (*ZkLock, error) {
 	return zl, nil
 }
 
-func TryLock(lockName string) {
+//when get err, should send sns message
+func TryLock(lockName string) error {
 	zl.mutex.Lock()
 	if _, ok := zl.lockMap[lockName]; !ok {
 		acls := zk.WorldACL(zk.PermAll)
 		zl.lockMap[lockName] = zk.NewLock(zl.zkClient, fmt.Sprintf("%s/%s", basePath, lockName), acls)
 	}
 	zl.mutex.Unlock()
-	zl.lockMap[lockName].Lock()
+	return zl.lockMap[lockName].Lock()
 }
 
 func ReleaseLock(lockName string) error {
