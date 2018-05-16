@@ -89,7 +89,7 @@ func (e *GasPriceEvaluator) start() {
 							}
 						}
 						e.gasPrice = prices.bestGasPrice()
-						cache.Set(CacheKey_Evaluated_GasPrice, int64(0), []byte(e.gasPrice.String()))
+						cache.Set(CacheKey_Evaluated_GasPrice, []byte(e.gasPrice.String()), int64(0))
 					}
 				}
 			}
@@ -143,7 +143,9 @@ func InitGasPriceEvaluator() {
 
 func EstimateGasPrice(minGasPrice, maxGasPrice *big.Int) *big.Int {
 	if data,err := cache.Get(CacheKey_Evaluated_GasPrice); nil == err {
-		return new(big.Int).SetString(string(data), 10)
+		gasprice := new(big.Int)
+		gasprice.SetString(string(data), 10)
+		return gasprice
 	} else {
 		InitGasPriceEvaluator()
 		return big.NewInt(int64(1000000000))
