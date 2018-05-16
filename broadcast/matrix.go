@@ -23,10 +23,10 @@ import "github.com/Loopring/relay-lib/log"
 type MatrixBroadcaster struct {
 }
 
-func (* MatrixBroadcaster) pub() (err error) {
+func (*MatrixBroadcaster) pub() (err error) {
 	return nil
 }
 
-func (* MatrixBroadcaster) sub() (err error) {
+func (*MatrixBroadcaster) sub() (err error) {
 	return nil
 }

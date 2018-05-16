@@ -21,7 +21,6 @@ package broadcast
 var pubSubManager PubSubManager
 
 type PubSubManager struct {
-
 }
 
 type Publisher struct {
@@ -41,7 +40,6 @@ func NewPubSubManager(cfg PubSubConfig) PubSubManager {
 	return PubSubManager{}
 }
 
-func (pb * PubSubManager) Start() {
+func (pb *PubSubManager) Start() {
 
 }
-

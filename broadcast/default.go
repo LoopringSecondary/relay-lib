@@ -23,12 +23,12 @@ import "github.com/Loopring/relay-lib/log"
 type DefaultBroadcaster struct {
 }
 
-func (* DefaultBroadcaster) pub() (err error) {
+func (*DefaultBroadcaster) pub() (err error) {
 	log.Debug("default broadcaster doesn't publish msg")
 	return nil
 }
 
-func (* DefaultBroadcaster) sub() (err error) {
+func (*DefaultBroadcaster) sub() (err error) {
 	log.Debug("default broadcaster doesn't subscribe msg")
 	return nil
 }

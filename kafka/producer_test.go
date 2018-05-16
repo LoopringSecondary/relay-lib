@@ -1,11 +1,11 @@
 package kafka_test
 
 import (
+	"fmt"
 	"github.com/Loopring/relay-lib/kafka"
 	"strings"
-	"fmt"
-	"time"
 	"testing"
+	"time"
 )
 
 type TestData struct {

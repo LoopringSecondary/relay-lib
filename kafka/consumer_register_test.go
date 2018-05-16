@@ -2,9 +2,9 @@ package kafka_test
 
 import (
 	"fmt"
-	"time"
 	"github.com/Loopring/relay-lib/kafka"
 	"testing"
+	"time"
 )
 
 func TestConsumer(t *testing.T) {
@@ -14,8 +14,8 @@ func TestConsumer(t *testing.T) {
 	err := register.RegisterTopicAndHandler("test", "group1", TestData{}, func(data interface{}) error {
 		dataValue := data.(*TestData)
 		fmt.Printf("Msg : %s, Timestamp : %s \n", dataValue.Msg, dataValue.Timestamp)
-		 return  nil
-		 })
+		return nil
+	})
 	if err != nil {
 		fmt.Errorf("Failed register")
 		println(err)

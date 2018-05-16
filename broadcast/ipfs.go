@@ -33,11 +33,11 @@ import (
 type IpfsBroadcaster struct {
 }
 
-func (* IpfsBroadcaster) pub() (err error) {
+func (*IpfsBroadcaster) pub() (err error) {
 	return nil
 }
 
-func (* IpfsBroadcaster) sub() (err error) {
+func (*IpfsBroadcaster) sub() (err error) {
 	return nil
 }
 

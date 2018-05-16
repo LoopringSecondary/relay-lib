@@ -1,11 +1,11 @@
 package kafka
 
 import (
-	"github.com/bsm/sarama-cluster"
-	"fmt"
-	"strings"
 	"encoding/json"
+	"fmt"
+	"github.com/bsm/sarama-cluster"
 	"reflect"
+	"strings"
 )
 
 type ConsumerRegister struct {
@@ -14,7 +14,7 @@ type ConsumerRegister struct {
 	consumerMap map[string]map[string]*cluster.Consumer
 }
 
-type HandlerFunc func(event interface{})(error)
+type HandlerFunc func(event interface{}) error
 
 func (cr *ConsumerRegister) Initialize(address string) {
 	config := cluster.NewConfig()
@@ -25,7 +25,7 @@ func (cr *ConsumerRegister) Initialize(address string) {
 	cr.consumerMap = make(map[string]map[string]*cluster.Consumer) //map[topic][groupId]
 }
 
-func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) (error) {
+func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) error {
 	groupConsumerMap, ok := cr.consumerMap[topic]
 	if ok {
 		_, ok1 := groupConsumerMap[groupId]
