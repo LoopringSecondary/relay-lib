@@ -9,14 +9,14 @@ import (
 )
 
 type ZkLockConfig struct {
-	ZkServers       string
-	ConnectTimeOut  int
+	ZkServers      string
+	ConnectTimeOut int
 }
 
 type ZkLock struct {
 	zkClient *zk.Conn
-	lockMap map[string]*zk.Lock
-	mutex 		sync.Mutex
+	lockMap  map[string]*zk.Lock
+	mutex    sync.Mutex
 }
 
 var zl *ZkLock
@@ -35,7 +35,7 @@ func Initialize(config ZkLockConfig) (*ZkLock, error) {
 	return zl, nil
 }
 
-func  TryLock(lockName string) {
+func TryLock(lockName string) {
 	zl.mutex.Lock()
 	if _, ok := zl.lockMap[lockName]; !ok {
 		acls := zk.WorldACL(zk.PermAll)
@@ -45,7 +45,7 @@ func  TryLock(lockName string) {
 	zl.lockMap[lockName].Lock()
 }
 
-func ReleaseLock(lockName string) (error) {
+func ReleaseLock(lockName string) error {
 	if innerLock, ok := zl.lockMap[lockName]; ok {
 		innerLock.Unlock()
 		return nil

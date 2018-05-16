@@ -19,48 +19,73 @@
 package marketcap_test
 
 import (
-	"github.com/Loopring/relay/config"
-	"github.com/Loopring/relay/log"
-	"github.com/Loopring/relay/market/util"
-	"github.com/Loopring/relay/marketcap"
+	"encoding/json"
+	"github.com/Loopring/relay-lib/cache"
+	"github.com/Loopring/relay-lib/cache/redis"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/marketcap"
+	"github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/zklock"
 	"github.com/ethereum/go-ethereum/common"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
+	"time"
 )
 
-func TestStart(t *testing.T) {
-	cfg := config.LoadConfig("/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/relay.toml")
+func init() {
+	logConfig := `{
+	  "level": "debug",
+	  "development": false,
+	  "encoding": "json",
+	  "outputPaths": ["zap.log","stderr"],
+	  "errorOutputPaths": ["err.log"],
+	  "encoderConfig": {
+	    "messageKey": "message",
+	    "levelKey": "level",
+	    "levelEncoder": "lowercase",
+	    "encodeTime": "iso8601",
+	  }
+	}`
+	rawJSON := []byte(logConfig)
 
-	log.Initialize(cfg.Log)
-	util.Initialize(cfg.Market)
-	provider := marketcap.NewMarketCapProvider(cfg.MarketCap)
-	provider.Start()
-	for _, token := range util.AllTokens {
-		p1, _ := provider.GetMarketCap(token.Protocol)
-		p2, _ := provider.GetMarketCapByCurrency(token.Protocol, "USD")
-		t.Logf("second round token:%s, p1:%s, p2:%s", token.Symbol, p1.FloatString(2), p2.FloatString(2))
+	var (
+		cfg zap.Config
+		err error
+	)
+	if err = json.Unmarshal(rawJSON, &cfg); err != nil {
+		panic(err)
 	}
+	log.Initialize(cfg)
 
+	cache.NewCache(redis.RedisOptions{Host: "127.0.0.1", Port: "6379"})
+
+	options := marketutil.MarketOptions{}
+	options.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
+	marketutil.Initialize(&options)
+
+	zkconfig := zklock.ZkLockConfig{}
+	zkconfig.ZkServers = "127.0.0.1:2181"
+	zkconfig.ConnectTimeOut = 10000
+	zklock.Initialize(zkconfig)
+}
+
+func TestCapProvider_CoinMarketCap_Start(t *testing.T) {
+	options := marketcap.MarketCapOptions{}
+	options.BaseUrl = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
+	options.Duration = 5
+	options.Currency = "USD"
+	options.IsSync = false
+	provider := marketcap.NewMarketCapProvider(&options)
+	provider.Start()
 	a := new(big.Rat)
-	a.SetString("284186332622238284")
+	a.SetString("2806326640744990")
 	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0xBeB6fdF4ef6CEb975157be43cBE0047B248a8922"), a, "USD")
 	if nil != err {
 		t.Errorf(err.Error())
 	} else {
 		println(f.FloatString(2))
 	}
-	f1, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0xEF68e7C694F40c8202821eDF525dE3782458639f"), a, "USD")
-	if nil != err {
-		t.Errorf(err.Error())
-	} else {
-		println(f1.FloatString(2))
-	}
-	//
-	//time.Sleep(3 * time.Minute)
-	//for _, token := range util.AllTokens {
-	//	p1, _ := provider.GetMarketCap(token.Protocol)
-	//	p2, _ := provider.GetMarketCapByCurrency(token.Protocol, "USD")
-	//
-	//	t.Logf("first round token:%s, p1:%s, p2:%s", token.Symbol, p1.String(), p2.String())
-	//}
+
+	time.Sleep(11 * time.Second)
 }

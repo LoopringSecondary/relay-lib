@@ -13,7 +13,7 @@ type ConsumerRegister struct {
 	brokers     []string
 	conf        *cluster.Config
 	consumerMap map[string]map[string]*cluster.Consumer
-	mutex 		sync.Mutex
+	mutex       sync.Mutex
 }
 
 type HandlerFunc func(event interface{}) error
@@ -28,7 +28,7 @@ func (cr *ConsumerRegister) Initialize(address string) {
 	cr.mutex = sync.Mutex{}
 }
 
-func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) (error) {
+func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) error {
 	cr.mutex.Lock()
 	groupConsumerMap, ok := cr.consumerMap[topic]
 	if ok {
@@ -60,7 +60,6 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 			fmt.Printf("Notification : %+v\n", ntf)
 		}
 	}()
-
 
 	go func() {
 		for {
