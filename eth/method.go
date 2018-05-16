@@ -16,35 +16,20 @@
 
 */
 
-package log
+package eth
 
 import (
-	"go.uber.org/zap"
+	"github.com/Loopring/relay-lib/eth/accessor"
+	"github.com/Loopring/relay-lib/eth/loopringaccessor"
 )
 
-var (
-	logger        *zap.Logger
-	sugaredLogger *zap.SugaredLogger
-)
-
-func Initialize(cfg zap.Config) *zap.Logger {
+func InitializeAccessor(accessorOptions accessor.AccessorOptions, loopringOptions loopringaccessor.LoopringProtocolOptions) error {
 	var err error
-
-	//cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	//"callerKey":"C"
-	//cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-	//cfg.EncoderConfig.LineEnding = zapcore.DefaultLineEnding
-	//opts := zap.AddStacktrace(zap.DebugLevel)
-
-	logger, err = cfg.Build()
-	if err != nil {
-		panic(err)
+	if err = accessor.Initialize(accessorOptions); nil != err {
+		return err
 	}
-	sugaredLogger = logger.Sugar()
-
-	return logger
-}
-
-func IsInit() bool {
-	return nil != logger
+	if err = loopringaccessor.Initialize(loopringOptions); nil != err {
+		return err
+	}
+	return nil
 }
