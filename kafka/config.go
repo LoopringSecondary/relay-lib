@@ -16,35 +16,8 @@
 
 */
 
-package log
+package kafka
 
-import (
-	"go.uber.org/zap"
-)
-
-var (
-	logger        *zap.Logger
-	sugaredLogger *zap.SugaredLogger
-)
-
-func Initialize(cfg zap.Config) *zap.Logger {
-	var err error
-
-	//cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	//"callerKey":"C"
-	//cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-	//cfg.EncoderConfig.LineEnding = zapcore.DefaultLineEnding
-	//opts := zap.AddStacktrace(zap.DebugLevel)
-
-	logger, err = cfg.Build()
-	if err != nil {
-		panic(err)
-	}
-	sugaredLogger = logger.Sugar()
-
-	return logger
-}
-
-func IsInit() bool {
-	return nil != logger
+type KafkaOptions struct {
+	Brokers []string
 }
