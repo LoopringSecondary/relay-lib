@@ -21,7 +21,7 @@ func (o OrderJsonRequest) MarshalJSON() ([]byte, error) {
 		TokenS                common.Address             `json:"tokenS" gencodec:"required"`
 		TokenB                common.Address             `json:"tokenB" gencodec:"required"`
 		AuthAddr              common.Address             `json:"authAddr" gencodec:"required"`
-		AuthPrivateKey        crypto.EthPrivateKeyCrypto `json:"authPrivateKey" gencodec:"required"`
+		AuthPrivateKey        crypto.EthPrivateKeyCrypto `json:"authPrivateKey"`
 		WalletAddress         common.Address             `json:"walletAddress" gencodec:"required"`
 		AmountS               *Big                       `json:"amountS" gencodec:"required"`
 		AmountB               *Big                       `json:"amountB" gencodec:"required"`
@@ -39,6 +39,7 @@ func (o OrderJsonRequest) MarshalJSON() ([]byte, error) {
 		CreateTime            int64                      `json:"createTime"`
 		PowNonce              uint64                     `json:"powNonce"`
 		Side                  string                     `json:"side"`
+		OrderType             string                     `json:"orderType"`
 	}
 	var enc OrderJsonRequest
 	enc.Protocol = o.Protocol
@@ -64,6 +65,7 @@ func (o OrderJsonRequest) MarshalJSON() ([]byte, error) {
 	enc.CreateTime = o.CreateTime
 	enc.PowNonce = o.PowNonce
 	enc.Side = o.Side
+	enc.OrderType = o.OrderType
 	return json.Marshal(&enc)
 }
 
@@ -75,7 +77,7 @@ func (o *OrderJsonRequest) UnmarshalJSON(input []byte) error {
 		TokenS                *common.Address             `json:"tokenS" gencodec:"required"`
 		TokenB                *common.Address             `json:"tokenB" gencodec:"required"`
 		AuthAddr              *common.Address             `json:"authAddr" gencodec:"required"`
-		AuthPrivateKey        *crypto.EthPrivateKeyCrypto `json:"authPrivateKey" gencodec:"required"`
+		AuthPrivateKey        *crypto.EthPrivateKeyCrypto `json:"authPrivateKey"`
 		WalletAddress         *common.Address             `json:"walletAddress" gencodec:"required"`
 		AmountS               *Big                        `json:"amountS" gencodec:"required"`
 		AmountB               *Big                        `json:"amountB" gencodec:"required"`
@@ -93,6 +95,7 @@ func (o *OrderJsonRequest) UnmarshalJSON(input []byte) error {
 		CreateTime            *int64                      `json:"createTime"`
 		PowNonce              *uint64                     `json:"powNonce"`
 		Side                  *string                     `json:"side"`
+		OrderType             *string                     `json:"orderType"`
 	}
 	var dec OrderJsonRequest
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -118,10 +121,9 @@ func (o *OrderJsonRequest) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'authAddr' for OrderJsonRequest")
 	}
 	o.AuthAddr = *dec.AuthAddr
-	if dec.AuthPrivateKey == nil {
-		return errors.New("missing required field 'authPrivateKey' for OrderJsonRequest")
+	if dec.AuthPrivateKey != nil {
+		o.AuthPrivateKey = *dec.AuthPrivateKey
 	}
-	o.AuthPrivateKey = *dec.AuthPrivateKey
 	if dec.WalletAddress == nil {
 		return errors.New("missing required field 'walletAddress' for OrderJsonRequest")
 	}
@@ -182,6 +184,9 @@ func (o *OrderJsonRequest) UnmarshalJSON(input []byte) error {
 	}
 	if dec.Side != nil {
 		o.Side = *dec.Side
+	}
+	if dec.OrderType != nil {
+		o.OrderType = *dec.OrderType
 	}
 	return nil
 }
