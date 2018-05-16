@@ -16,7 +16,7 @@
 
 */
 
-package gateway_test
+package ipfs_test
 
 import (
 	"github.com/Loopring/relay/cache"

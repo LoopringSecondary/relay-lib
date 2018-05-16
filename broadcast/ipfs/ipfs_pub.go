@@ -16,7 +16,7 @@
 
 */
 
-package gateway
+package ipfs
 
 import (
 	"github.com/Loopring/relay/config"

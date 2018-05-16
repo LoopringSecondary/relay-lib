@@ -16,7 +16,7 @@
 
 */
 
-package gateway
+package ipfs
 
 import (
 	"fmt"
