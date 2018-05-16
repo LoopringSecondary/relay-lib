@@ -6,12 +6,14 @@ import (
 	"github.com/bsm/sarama-cluster"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type ConsumerRegister struct {
 	brokers     []string
 	conf        *cluster.Config
 	consumerMap map[string]map[string]*cluster.Consumer
+	mutex 		sync.Mutex
 }
 
 type HandlerFunc func(event interface{}) error
@@ -23,13 +25,16 @@ func (cr *ConsumerRegister) Initialize(address string) {
 	cr.conf = config
 	cr.brokers = strings.Split(address, ",")
 	cr.consumerMap = make(map[string]map[string]*cluster.Consumer) //map[topic][groupId]
+	cr.mutex = sync.Mutex{}
 }
 
-func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) error {
+func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string, data interface{}, action HandlerFunc) (error) {
+	cr.mutex.Lock()
 	groupConsumerMap, ok := cr.consumerMap[topic]
 	if ok {
 		_, ok1 := groupConsumerMap[groupId]
 		if ok1 {
+			cr.mutex.Unlock()
 			return fmt.Errorf("consumer alreay registered !!")
 		}
 	} else {
@@ -37,8 +42,11 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 	}
 	consumer, err := cluster.NewConsumer(cr.brokers, groupId, []string{topic}, cr.conf)
 	if err != nil {
-		panic(err)
+		cr.mutex.Unlock()
+		return err
 	}
+	cr.consumerMap[topic][groupId] = consumer
+	cr.mutex.Unlock()
 
 	go func() {
 		for err := range consumer.Errors() {
@@ -53,7 +61,7 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 		}
 	}()
 
-	cr.consumerMap[topic][groupId] = consumer
+
 	go func() {
 		for {
 			select {
