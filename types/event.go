@@ -224,7 +224,7 @@ type BlockEvent struct {
 type ExtractorWarningEvent struct{}
 
 type TransactionEvent struct {
-	Tx TxInfo
+	TxInfo
 }
 
 type DepthUpdateEvent struct {

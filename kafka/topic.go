@@ -21,11 +21,12 @@ package kafka
 const (
 	NewOrder = "NewOrder"
 
-	WethDeposit    = "WethDeposit"
-	WethWithdrawal = "WethWithdrawal"
-	Approve        = "Approve"
-	Transfer       = "Transfer"
-	EthTransfer    = "EthTransfer"
+	WethDeposit         = "WethDeposit"
+	WethWithdrawal      = "WethWithdrawal"
+	Approve             = "Approve"
+	Transfer            = "Transfer"
+	EthTransfer         = "EthTransfer"
+	UnsupportedContract = "UnsupportedContract"
 
 	RingMined           = "RingMined"
 	OrderFilled         = "OrderFilled"
