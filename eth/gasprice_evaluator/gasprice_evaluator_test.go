@@ -71,6 +71,6 @@ func TestInitGasPriceEvaluator(t *testing.T) {
 }
 
 func TestEstimateGasPrice(t *testing.T) {
-	gasPrice := gasprice_evaluator.EstimateGasPrice(big.NewInt(int64(10000000000)), big.NewInt(int64(1000000000000000)))
+	gasPrice := gasprice_evaluator.EstimateGasPrice(big.NewInt(int64(100000000)), big.NewInt(int64(1000000000000000)))
 	t.Log(gasPrice.String())
 }

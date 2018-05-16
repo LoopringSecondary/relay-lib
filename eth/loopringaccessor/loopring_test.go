@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 	"testing"
 	"github.com/Loopring/relay-lib/eth/loopringaccessor"
-	"github.com/Loopring/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func init() {

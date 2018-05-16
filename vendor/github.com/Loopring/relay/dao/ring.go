@@ -176,6 +176,8 @@ func (info *RingSubmitInfo) ConvertUp(typesInfo *types.RingSubmitInfo) error {
 	typesInfo.ProtocolGasPrice.SetString(info.ProtocolGasPrice, 0)
 	typesInfo.SubmitTxHash = common.HexToHash(info.ProtocolTxHash)
 	typesInfo.Miner = common.HexToAddress(info.Miner)
+	typesInfo.RawRing = &types.Ring{}
+	typesInfo.RawRing.UniqueId = common.HexToHash(info.UniqueId)
 	return nil
 }
 
