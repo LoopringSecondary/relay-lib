@@ -1,13 +1,14 @@
 package sns
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"fmt"
 	"time"
 )
+
 /*
  need config following config files for aws sns service connect
 	~/.aws/config/config
@@ -16,8 +17,8 @@ import (
 
 type SnsClient struct {
 	innerClient *sns.SNS
-	topicArn string
-	valid bool
+	topicArn    string
+	valid       bool
 }
 
 type SnsConfig struct {
@@ -40,7 +41,7 @@ func Initialize(config SnsConfig) (*SnsClient, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		sc =  &SnsClient{sns.New(sess), config.SNSTopicArn,true}
+		sc = &SnsClient{sns.New(sess), config.SNSTopicArn, true}
 		return sc, nil
 	}
 }
@@ -52,7 +53,7 @@ func PublishSns(subject string, message string) error {
 		input := &sns.PublishInput{}
 		input.SetTopicArn(sc.topicArn)
 		input.SetSubject(subject)
-		input.SetMessage(fmt.Sprintf("%s|%s",time.Now().Format("15:04:05"), message))
+		input.SetMessage(fmt.Sprintf("%s|%s", time.Now().Format("15:04:05"), message))
 		_, err := sc.innerClient.Publish(input)
 		if err != nil {
 			return fmt.Errorf("Failed send sns message with error : %s\nSubject: %s\n, Message %s\n", err.Error(), subject, message)
