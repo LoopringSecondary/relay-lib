@@ -44,8 +44,9 @@ type MysqlOptions struct {
 	Debug              bool
 }
 
-func NewRdsService(options *MysqlOptions) *RdsServiceImpl {
-	impl := &RdsServiceImpl{}
+func NewRdsService(options *MysqlOptions) RdsServiceImpl {
+	var impl RdsServiceImpl
+
 	impl.options = options
 
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
