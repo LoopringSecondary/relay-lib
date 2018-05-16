@@ -1,11 +1,11 @@
 package kafka
 
 import (
-	"github.com/bsm/sarama-cluster"
-	"fmt"
-	"strings"
 	"encoding/json"
+	"fmt"
+	"github.com/bsm/sarama-cluster"
 	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -16,7 +16,7 @@ type ConsumerRegister struct {
 	mutex 		sync.Mutex
 }
 
-type HandlerFunc func(event interface{})(error)
+type HandlerFunc func(event interface{}) error
 
 func (cr *ConsumerRegister) Initialize(address string) {
 	config := cluster.NewConfig()

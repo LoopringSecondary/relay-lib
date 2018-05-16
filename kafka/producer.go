@@ -1,9 +1,9 @@
 package kafka
 
 import (
-	"github.com/Shopify/sarama"
 	"encoding/json"
 	"fmt"
+	"github.com/Shopify/sarama"
 )
 
 type MessageProducer struct {
@@ -23,7 +23,7 @@ func (md *MessageProducer) Initialize(brokerList []string) (err error) {
 	return err
 }
 
-func (md *MessageProducer) SendMessage(topic string, data interface{}, key string) (partition int32, offset int64, sendErr error ) {
+func (md *MessageProducer) SendMessage(topic string, data interface{}, key string) (partition int32, offset int64, sendErr error) {
 	if data == nil {
 		return -1, -1, fmt.Errorf("message to send is null")
 	}
@@ -35,7 +35,7 @@ func (md *MessageProducer) SendMessage(topic string, data interface{}, key strin
 	return md.pd.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.ByteEncoder(bytes),
-		Key : sarama.StringEncoder(key),
+		Key:   sarama.StringEncoder(key),
 	})
 }
 

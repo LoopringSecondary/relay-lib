@@ -27,7 +27,7 @@ func Initialize(config ZkLockConfig) (*ZkLock, error) {
 	if config.ZkServers == "" || len(config.ZkServers) < 10 {
 		return nil, fmt.Errorf("Zookeeper server list config invalid: %s\n", config.ZkServers)
 	}
-	zkClient, _, err := zk.Connect(strings.Split(config.ZkServers,","), time.Second * time.Duration(config.ConnectTimeOut))
+	zkClient, _, err := zk.Connect(strings.Split(config.ZkServers, ","), time.Second*time.Duration(config.ConnectTimeOut))
 	if err != nil {
 		return nil, fmt.Errorf("Connect zookeeper error: %s\n", err.Error())
 	}
