@@ -319,6 +319,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 				p.syncMarketCapFromAPI()
 			case stopped := <-stopChan:
 				if stopped {
+					zklock.ReleaseLock(ZKNAME_COIN_MARKETCAP)
 					return
 				}
 			}
