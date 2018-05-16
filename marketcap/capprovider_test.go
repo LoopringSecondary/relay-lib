@@ -38,8 +38,8 @@ func init() {
 	  "level": "debug",
 	  "development": false,
 	  "encoding": "json",
-	  "outputPaths": ["zap.log","stderr"],
-	  "errorOutputPaths": ["err.log"],
+	  "outputPaths": ["stdout"],
+	  "errorOutputPaths": ["stderr"],
 	  "encoderConfig": {
 	    "messageKey": "message",
 	    "levelKey": "level",
