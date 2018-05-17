@@ -63,6 +63,7 @@ func Test_Disassemble(t *testing.T) {
 	}
 
 	for _, order := range event.OrderList {
-		t.Logf("order:%s, owner:%s", order.Hash.Hex(), order.Owner.Hex())
+		order.Hash = order.GenerateHash()
+		t.Logf("order:%s, owner:%s, privatekey:%s", order.Hash.Hex(), order.Owner.Hex(), order.AuthPrivateKey.Address().Hex())
 	}
 }
