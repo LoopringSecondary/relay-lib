@@ -19,6 +19,9 @@
 package kafka
 
 const (
-	Kafka_PendingTransaction = "Kafka_PendingTransaction"
-	Kafka_EventOnChain       = "Kafka_EventOnChain"
+	Kafka_Topic_Extractor_PendingTransaction = "Kafka_Topic_Extractor_PendingTransaction"
+	Kafka_Topic_Extractor_EventOnChain       = "Kafka_Topic_Extractor_EventOnChain"
+
+	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
+	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
 )

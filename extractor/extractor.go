@@ -33,8 +33,8 @@ type ExtractorService struct {
 }
 
 const (
-	kafka_topic = kafka.Kafka_EventOnChain
-	kafka_group = "extractor"
+	kafka_topic = kafka.Kafka_Topic_Extractor_EventOnChain
+	kafka_group = kafka.Kafka_Group_Extractor_EventOnChain
 )
 
 func Initialize(options kafka.KafkaOptions) error {
