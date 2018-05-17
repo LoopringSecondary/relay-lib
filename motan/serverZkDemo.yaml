@@ -1,7 +1,7 @@
 #config fo server
 motan-server:
   mport: 8002 # agent manage port
-  log_dir: "/data/motan/logs/server"
+  log_dir: "."
   application: "loopring-test" # server identify.
 
 #config of registries

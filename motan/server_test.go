@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"testing"
 	"github.com/Loopring/relay-lib/motan"
+	"time"
 )
 
 
@@ -77,7 +78,9 @@ func (m *Motan2TestService) Hello(params map[string]string) string {
 func TestRunServer(t *testing.T) {
 	serverInstance := &Motan2TestService{}
 	options := motan.MotanServerOptions{}
-	options.ConfFile = "./motan/serverZkDemo.yaml"
+	options.ConfFile = "./serverZkDemo.yaml"
 	options.ServerInstance = serverInstance
-	motan.RunServer(serverInstance)
+	motan.RunServer(options)
+
+	time.Sleep(5 * time.Minute)
 }
