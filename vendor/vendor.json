@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "8R/rrWmvSN+8A6zAvPQnMTQirMA=",
+			"path": "github.com/Loopring/motan-go/main/demo",
+			"revision": "be9bdc0f9d38eeb609791dc6aaca091b2f090a2b",
+			"revisionTime": "2018-05-10T07:58:58Z"
+		},
+		{
 			"checksumSHA1": "kHh2EuzlSG80I7Hegzb8XnM5ybU=",
 			"path": "github.com/Shopify/sarama",
 			"revision": "3c763ff04e6daa57d4a4614e5bcd908f2527c989",
