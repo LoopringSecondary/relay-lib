@@ -26,7 +26,7 @@ import (
 
 func InitClient(options MotanClientOptions) *weibomotan.Client {
 	mccontext := weibomotan.GetClientContext(options.ConfFile)
-	extFactory := motancore.ExtentionFactory{}
+	extFactory := motancore.DefaultExtentionFactory{}
 	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
 		return &serialize.GobSerialization{}
 	})

@@ -16,20 +16,6 @@
 
 */
 
-package motan
+package motan_test
 
-import (
-	weibomotan "github.com/weibocom/motan-go"
-	motancore "github.com/weibocom/motan-go/core"
-	"github.com/Loopring/relay-lib/motan/serialize"
-)
 
-func RunServer(options MotanServerOptions) {
-	mscontext := weibomotan.GetMotanServerContext(options.ConfFile)
-	mscontext.RegisterService(options.ServerInstance, "")
-	extFactory := motancore.DefaultExtentionFactory{}
-	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
-		return &serialize.GobSerialization{}
-	})
-	mscontext.Start(extFactory)
-}
