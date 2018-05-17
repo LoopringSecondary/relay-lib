@@ -28,5 +28,4 @@ type Block struct {
 	ParentHash  common.Hash
 	BlockNumber *big.Int
 	CreateTime  int64
-	IsFinished  bool
 }

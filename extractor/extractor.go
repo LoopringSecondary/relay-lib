@@ -137,9 +137,9 @@ func topicToEvent(topic string) interface{} {
 		event = &types.UnsupportedContractEvent{}
 
 	case eventemitter.Block_New:
-		event = &types.Block{}
+		event = &types.BlockEvent{}
 	case eventemitter.Block_End:
-		event = &types.Block{}
+		event = &types.BlockEvent{}
 	case eventemitter.SyncChainComplete:
 		event = &types.SyncCompleteEvent{}
 	case eventemitter.ChainForkDetected:
@@ -190,7 +190,7 @@ func eventToTopic(event interface{}) string {
 	case *types.UnsupportedContractEvent:
 		topic = eventemitter.UnsupportedContract
 
-	case *types.Block:
+	case *types.BlockEvent:
 		if e.IsFinished {
 			topic = eventemitter.Block_End
 		} else {
