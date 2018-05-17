@@ -19,18 +19,17 @@
 package motan_test
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/Loopring/motan-go/main/demo"
-	"bytes"
-	"testing"
 	"github.com/Loopring/relay-lib/motan"
+	"testing"
 )
 
-
-type  Person struct {
-	Id int
-	Email string
-	Name string
+type Person struct {
+	Id     int
+	Email  string
+	Name   string
 	Phones []*Person_PhoneNumber
 }
 
@@ -75,9 +74,9 @@ func (m *Motan2TestService) Hello(params map[string]string) string {
 }
 
 func TestRunServer(t *testing.T) {
-	serverInstance := &Motan2TestService{}
+	serverInstance := Motan2TestService{}
 	options := motan.MotanServerOptions{}
 	options.ConfFile = "./motan/serverZkDemo.yaml"
 	options.ServerInstance = serverInstance
-	motan.RunServer(serverInstance)
+	motan.RunServer(options)
 }

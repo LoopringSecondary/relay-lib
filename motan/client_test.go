@@ -17,5 +17,3 @@
 */
 
 package motan_test
-
-
