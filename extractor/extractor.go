@@ -55,21 +55,17 @@ func (s *ExtractorService) handle(input interface{}) error {
 		return fmt.Errorf("extractor,input type should be *KafkaOnChainEvent")
 	}
 
-	topic := src.Topic
-
-	event, err := Disassemble(input)
+	event, err := Disassemble(src)
 	if err != nil {
 		return err
 	}
 
-	eventemitter.Emit(topic, event)
+	eventemitter.Emit(src.Topic, event)
 	return nil
 }
 
 // convert types.kafkaOnChainEvent to kind of events
-func Disassemble(input interface{}) (interface{}, error) {
-	src := input.(*types.KafkaOnChainEvent)
-
+func Disassemble(src *types.KafkaOnChainEvent) (interface{}, error) {
 	event := topicToEvent(src.Topic)
 	if event == nil {
 		return nil, fmt.Errorf("get event from topic error")
