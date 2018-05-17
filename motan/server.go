@@ -20,11 +20,17 @@ package motan
 
 import (
 	weibomotan "github.com/weibocom/motan-go"
+	motancore "github.com/weibocom/motan-go/core"
+	"github.com/Loopring/relay-lib/motan/serialize"
 )
 
 func RunServer(options MotanServerOptions) {
 	mscontext := weibomotan.GetMotanServerContext(options.ConfFile)
 	mscontext.RegisterService(options.ServerInstance, "")
-	mscontext.Start(nil)
+	extFactory := motancore.ExtentionFactory{}
+	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
+		return &serialize.GobSerialization{}
+	})
+	mscontext.Start(extFactory)
 }
 
