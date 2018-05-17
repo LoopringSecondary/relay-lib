@@ -16,17 +16,36 @@
 
 */
 
-package types
+package extractor_test
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"encoding/json"
+	"github.com/Loopring/relay-lib/types"
 	"math/big"
+	"testing"
 )
 
-type Block struct {
-	BlockHash   common.Hash
-	ParentHash  common.Hash
-	BlockNumber *big.Int
-	CreateTime  int64
-	IsFinished  bool
+func Test_Json(t *testing.T) {
+	var a, b types.ForkedEvent
+	a.DetectedBlock = big.NewInt(3)
+	a.ForkBlock = big.NewInt(4)
+	bs, err := json.Marshal(&a)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	var e interface{}
+	e = &b
+	if err := json.Unmarshal(bs, e); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	switch te := e.(type) {
+	case *types.ForkedEvent:
+		t.Log(te.ForkBlock.String())
+		t.Log(te.DetectedBlock.String())
+
+	default:
+		t.Log("type error")
+	}
 }

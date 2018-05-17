@@ -19,61 +19,63 @@
 package kafka
 
 const (
-	NewOrder = "NewOrder"
+	//NewOrder = "NewOrder"
+	//
+	//WethDeposit         = "WethDeposit"
+	//WethWithdrawal      = "WethWithdrawal"
+	//Approve             = "Approve"
+	//Transfer            = "Transfer"
+	//EthTransfer         = "EthTransfer"
+	//UnsupportedContract = "UnsupportedContract"
+	//
+	//RingMined           = "RingMined"
+	//OrderFilled         = "OrderFilled"
+	//CancelOrder         = "CancelOrder"
+	//CutoffAll           = "Cutoff"
+	//CutoffPair          = "CutoffPair"
+	//TokenRegistered     = "TokenRegistered"
+	//TokenUnRegistered   = "TokenUnRegistered"
+	//RingHashSubmitted   = "RingHashSubmitted"
+	//AddressAuthorized   = "AddressAuthorized"
+	//AddressDeAuthorized = "AddressDeAuthorized"
+	//
+	//MinedOrderState            = "MinedOrderState" //orderbook send orderstate to miner
+	//WalletTransactionSubmitted = "WalletTransactionSubmitted"
+	//
+	//ExtractorFork   = "ExtractorFork" //chain forked
+	//Transaction     = "Transaction"
+	//GatewayNewOrder = "GatewayNewOrder"
+	//
+	////Miner
+	//Miner_DeleteOrderState           = "Miner_DeleteOrderState"
+	//Miner_NewOrderState              = "Miner_NewOrderState"
+	//Miner_NewRing                    = "Miner_NewRing"
+	//Miner_RingMined                  = "Miner_RingMined"
+	//Miner_RingSubmitResult           = "Miner_RingSubmitResult"
+	//Miner_SubmitRing_Method          = "Miner_SubmitRing_Method"
+	//Miner_SubmitRingHash_Method      = "Miner_SubmitRingHash_Method"
+	//Miner_BatchSubmitRingHash_Method = "Miner_BatchSubmitRingHash_Method"
+	//
+	//// Block
+	//Block_New = "Block_New"
+	//Block_End = "Block_End"
+	//
+	//// Extractor
+	//SyncChainComplete = "SyncChainComplete"
+	//ChainForkDetected = "ChainForkDetected"
+	//ExtractorWarning  = "ExtractorWarning"
+	//
+	//// Transaction
+	//TransactionEvent   = "TransactionEvent"
+	//PendingTransaction = "PendingTransaction"
+	//
+	//// socketio notify event types
+	//LoopringTickerUpdated = "LoopringTickerUpdated"
+	//TrendUpdated          = "TrendUpdated"
+	//PortfolioUpdated      = "PortfolioUpdated"
+	//BalanceUpdated        = "BalanceUpdated"
+	//DepthUpdated          = "DepthUpdated"
+	//TransactionUpdated    = "TransactionUpdated"
 
-	WethDeposit         = "WethDeposit"
-	WethWithdrawal      = "WethWithdrawal"
-	Approve             = "Approve"
-	Transfer            = "Transfer"
-	EthTransfer         = "EthTransfer"
-	UnsupportedContract = "UnsupportedContract"
-
-	RingMined           = "RingMined"
-	OrderFilled         = "OrderFilled"
-	CancelOrder         = "CancelOrder"
-	CutoffAll           = "Cutoff"
-	CutoffPair          = "CutoffPair"
-	TokenRegistered     = "TokenRegistered"
-	TokenUnRegistered   = "TokenUnRegistered"
-	RingHashSubmitted   = "RingHashSubmitted"
-	AddressAuthorized   = "AddressAuthorized"
-	AddressDeAuthorized = "AddressDeAuthorized"
-
-	MinedOrderState            = "MinedOrderState" //orderbook send orderstate to miner
-	WalletTransactionSubmitted = "WalletTransactionSubmitted"
-
-	ExtractorFork   = "ExtractorFork" //chain forked
-	Transaction     = "Transaction"
-	GatewayNewOrder = "GatewayNewOrder"
-
-	//Miner
-	Miner_DeleteOrderState           = "Miner_DeleteOrderState"
-	Miner_NewOrderState              = "Miner_NewOrderState"
-	Miner_NewRing                    = "Miner_NewRing"
-	Miner_RingMined                  = "Miner_RingMined"
-	Miner_RingSubmitResult           = "Miner_RingSubmitResult"
-	Miner_SubmitRing_Method          = "Miner_SubmitRing_Method"
-	Miner_SubmitRingHash_Method      = "Miner_SubmitRingHash_Method"
-	Miner_BatchSubmitRingHash_Method = "Miner_BatchSubmitRingHash_Method"
-
-	// Block
-	Block_New = "Block_New"
-	Block_End = "Block_End"
-
-	// Extractor
-	SyncChainComplete = "SyncChainComplete"
-	ChainForkDetected = "ChainForkDetected"
-	ExtractorWarning  = "ExtractorWarning"
-
-	// Transaction
-	TransactionEvent   = "TransactionEvent"
-	PendingTransaction = "PendingTransaction"
-
-	// socketio notify event types
-	LoopringTickerUpdated = "LoopringTickerUpdated"
-	TrendUpdated          = "TrendUpdated"
-	PortfolioUpdated      = "PortfolioUpdated"
-	BalanceUpdated        = "BalanceUpdated"
-	DepthUpdated          = "DepthUpdated"
-	TransactionUpdated    = "TransactionUpdated"
+	EventOnChain = "EventOnChain"
 )
