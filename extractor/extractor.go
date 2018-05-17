@@ -33,7 +33,7 @@ type ExtractorService struct {
 }
 
 const (
-	kafka_topic = kafka.EventOnChain
+	kafka_topic = kafka.Kafka_EventOnChain
 	kafka_group = "extractor"
 )
 
