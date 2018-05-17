@@ -162,7 +162,7 @@ func toECDSA(privateKeyHex string) (*ecdsa.PrivateKey, error) {
 }
 
 func (h *EthPrivateKeyCrypto) MarshalText() ([]byte, error) {
-	if h.privateKey == nil || nil == h.privateKey.D  {
+	if h.privateKey == nil || nil == h.privateKey.D {
 		return []byte{}, nil
 	}
 	return []byte(common.ToHex(common.LeftPadBytes(h.privateKey.D.Bytes(), 32))), nil
