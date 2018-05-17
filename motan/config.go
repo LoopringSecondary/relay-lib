@@ -18,13 +18,12 @@
 
 package motan
 
-import (
-	weibomotan "github.com/weibocom/motan-go"
-)
-
-func RunServer(options MotanServerOptions) {
-	mscontext := weibomotan.GetMotanServerContext(options.ConfFile)
-	mscontext.RegisterService(options.ServerInstance, "")
-	mscontext.Start(nil)
+type MotanServerOptions struct {
+	ServerInstance interface{}
+	ConfFile string
 }
 
+type MotanClientOptions struct {
+	ClientId string
+	ConfFile string
+}

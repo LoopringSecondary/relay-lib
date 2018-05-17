@@ -22,9 +22,9 @@ import (
 	weibomotan "github.com/weibocom/motan-go"
 )
 
-func InitClient(confFile, clientId string) *weibomotan.Client {
-	mccontext := weibomotan.GetClientContext(confFile)
+func InitClient(options MotanClientOptions) *weibomotan.Client {
+	mccontext := weibomotan.GetClientContext(options.ConfFile)
 	mccontext.Start(nil)
-	mclient := mccontext.GetClient(clientId)
+	mclient := mccontext.GetClient(options.ClientId)
 	return mclient
 }
