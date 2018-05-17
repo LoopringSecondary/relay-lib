@@ -19,9 +19,9 @@
 package serialize
 
 import (
-"bytes"
-"encoding/gob"
-"fmt"
+	"bytes"
+	"encoding/gob"
+	"fmt"
 )
 
 const (

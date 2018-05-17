@@ -19,9 +19,9 @@
 package motan
 
 import (
+	"github.com/Loopring/relay-lib/motan/serialize"
 	weibomotan "github.com/weibocom/motan-go"
 	motancore "github.com/weibocom/motan-go/core"
-	"github.com/Loopring/relay-lib/motan/serialize"
 )
 
 func RunServer(options MotanServerOptions) {
@@ -33,4 +33,3 @@ func RunServer(options MotanServerOptions) {
 	})
 	mscontext.Start(extFactory)
 }
-

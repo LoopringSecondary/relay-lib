@@ -20,7 +20,7 @@ package motan
 
 type MotanServerOptions struct {
 	ServerInstance interface{}
-	ConfFile string
+	ConfFile       string
 }
 
 type MotanClientOptions struct {
