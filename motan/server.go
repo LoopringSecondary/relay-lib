@@ -27,7 +27,7 @@ import (
 func RunServer(options MotanServerOptions) {
 	mscontext := weibomotan.GetMotanServerContext(options.ConfFile)
 	mscontext.RegisterService(options.ServerInstance, "")
-	extFactory := motancore.DefaultExtentionFactory{}
+	extFactory := &motancore.DefaultExtentionFactory{}
 	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
 		return &serialize.GobSerialization{}
 	})
