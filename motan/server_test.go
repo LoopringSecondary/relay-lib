@@ -18,4 +18,66 @@
 
 package motan_test
 
+import (
+	"fmt"
+	"github.com/Loopring/motan-go/main/demo"
+	"bytes"
+	"testing"
+	"github.com/Loopring/relay-lib/motan"
+)
 
+
+type  Person struct {
+	Id int
+	Email string
+	Name string
+	Phones []*Person_PhoneNumber
+}
+
+type Person_PhoneNumber struct {
+	Number string
+}
+
+type AddressBook struct {
+	People []*Person
+}
+
+type MotanDemoService struct{}
+
+func (m *MotanDemoService) Hello(book *demo.AddressBook) *demo.AddressBook {
+	fmt.Printf("book.People.length :%d\n", len(book.People))
+	fmt.Printf("book.People[0].Email :%s\n", book.People[0].Email)
+	fmt.Printf("book.People[0].name :%s\n", book.People[0].Name)
+	book.People[0].Name = book.People[0].Name + " >>>"
+	book.People[0].Email = book.People[0].Email + " >>>"
+	book.People[0].Phones[0].Number = book.People[0].Phones[0].Number + " >>>"
+	return book
+}
+
+type Motan2TestService struct{}
+
+func (m *Motan2TestService) Hello(params map[string]string) string {
+	if params == nil {
+		return "params is nil!"
+	}
+	var buffer bytes.Buffer
+	for k, v := range params {
+		if buffer.Len() > 0 {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString(k)
+		buffer.WriteString("=")
+		buffer.WriteString(v)
+
+	}
+	fmt.Printf("Motan2TestService hello:%s\n", buffer.String())
+	return buffer.String()
+}
+
+func TestRunServer(t *testing.T) {
+	serverInstance := &Motan2TestService{}
+	options := motan.MotanServerOptions{}
+	options.ConfFile = "./motan/serverZkDemo.yaml"
+	options.ServerInstance = serverInstance
+	motan.RunServer(serverInstance)
+}
