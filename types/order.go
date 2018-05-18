@@ -271,7 +271,7 @@ type OrderState struct {
 	BroadcastTime    int         `json:"broadcastTime"`
 }
 
-func (state *OrderState) IsOrderFullFinished(tokenSPrice, tokenBPrice big.Rat, dustValue *big.Rat) bool {
+func (state *OrderState) IsOrderFullFinished(tokenSPrice, tokenBPrice *big.Rat, dustValue *big.Rat) bool {
 	remainedAmountS, _ := state.RemainedAmount()
 	remainedValue := new(big.Rat)
 	remainedValue.Mul(remainedAmountS, tokenSPrice)
