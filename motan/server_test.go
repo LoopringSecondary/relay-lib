@@ -19,12 +19,12 @@
 package motan_test
 
 import (
-	"fmt"
 	"bytes"
-	"testing"
+	"fmt"
 	"github.com/Loopring/relay-lib/motan"
-	"time"
 	"github.com/Loopring/relay-lib/motan/demo"
+	"testing"
+	"time"
 )
 
 type MotanDemoService struct{}

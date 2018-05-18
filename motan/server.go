@@ -19,9 +19,9 @@
 package motan
 
 import (
-	"github.com/Loopring/motan-go/serialize"
 	motan "github.com/Loopring/motan-go"
 	motancore "github.com/Loopring/motan-go/core"
+	"github.com/Loopring/motan-go/serialize"
 )
 
 func RunServer(options MotanServerOptions) {
