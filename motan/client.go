@@ -19,18 +19,16 @@
 package motan
 
 import (
-	"github.com/Loopring/motan-go/serialize"
 	motan "github.com/Loopring/motan-go"
-	motancore "github.com/Loopring/motan-go/core"
 )
 
 func InitClient(options MotanClientOptions) *motan.Client {
 	mccontext := motan.GetClientContext(options.ConfFile)
-	extFactory := motan.GetDefaultExtFactory()
-	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
-		return &serialize.GobSerialization{}
-	})
-	mccontext.Start(extFactory)
+	//extFactory := motan.GetDefaultExtFactory()
+	//extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
+	//	return &serialize.GobSerialization{}
+	//})
+	mccontext.Start(nil)
 	mclient := mccontext.GetClient(options.ClientId)
 	return mclient
 }
