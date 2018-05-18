@@ -18,10 +18,10 @@
 
 package demo
 
-type  Person struct {
-	Id int
-	Email string
-	Name string
+type Person struct {
+	Id     int
+	Email  string
+	Name   string
 	Phones []*Person_PhoneNumber
 }
 
@@ -32,4 +32,3 @@ type Person_PhoneNumber struct {
 type AddressBook struct {
 	People []*Person
 }
-

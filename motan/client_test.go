@@ -19,10 +19,10 @@
 package motan_test
 
 import (
-	"testing"
 	"fmt"
 	"github.com/Loopring/relay-lib/motan"
 	"github.com/Loopring/relay-lib/motan/demo"
+	"testing"
 )
 
 func TestInitClient(t *testing.T) {
@@ -60,7 +60,7 @@ func TestInitClient(t *testing.T) {
 	person.Id = 100
 	person.Email = "email@sss.com"
 	person.Name = "NameDemo"
-	phoneNumber := new (demo.Person_PhoneNumber)
+	phoneNumber := new(demo.Person_PhoneNumber)
 	phoneNumber.Number = "12232323"
 	person.Phones = append(person.Phones, phoneNumber)
 	address := &demo.AddressBook{}
