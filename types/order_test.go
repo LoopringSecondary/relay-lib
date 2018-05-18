@@ -37,10 +37,12 @@ func TestOrder_GeneratePrice(t *testing.T) {
 
 func TestOrder_GenerateHash(t *testing.T) {
 	s := `{"protocol":"0x123456789012340F73A93993E5101362656Af116",
+	"delegateAddress":"0x123456789012340F73A93993E5101362656Af116",
+	"walletAddress":"0x123456789012340F73A93993E5101362656Af116",
 "owner":"0x48ff2269e58a373120ffdbbdee3fbcea854ac30a",
 "tokenB":"0xEF68e7C694F40c8202821eDF525dE3782458639f","tokenS":"0x2956356cD2a2bf3202F771F50D3D14A367b48070",
 "authAddr":"0x90feb7c492db20afce48e830cc0c6bea1b6721dd",
-"authPrivateKey":"acfe437a8e0f65124c44647737c0471b8adc9a0763f139df76766f46d6af8e15",
+"authPrivateKey":"",
 "amountB":"0x56bc75e2d63100000","amountS":"0x16345785d8a0000",
 "lrcFee":"0xad78ebc5ac6200000",
 "validSince":"0x5aa104a5",
@@ -54,6 +56,10 @@ func TestOrder_GenerateHash(t *testing.T) {
 		c := crypto.NewKSCrypto(true, nil)
 		crypto.Initialize(c)
 		o := types.ToOrder(oJson)
+
+		if d, err := json.Marshal(o); nil == err {
+			println(string(d))
+		}
 		t.Log(o.ValidUntil.String())
 		t.Log(o.GenerateHash().Hex())
 	}

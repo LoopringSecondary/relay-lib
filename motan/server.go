@@ -20,8 +20,6 @@ package motan
 
 import (
 	motan "github.com/Loopring/motan-go"
-	motancore "github.com/Loopring/motan-go/core"
-	"github.com/Loopring/motan-go/serialize"
 )
 
 func RunServer(options MotanServerOptions) {
@@ -29,9 +27,9 @@ func RunServer(options MotanServerOptions) {
 	if err := mscontext.RegisterService(options.ServerInstance, ""); nil != err {
 		println("########", err.Error())
 	}
-	extFactory := motan.GetDefaultExtFactory()
-	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
-		return &serialize.GobSerialization{}
-	})
-	mscontext.Start(extFactory)
+	//extFactory := motan.GetDefaultExtFactory()
+	//extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
+	//	return &serialize.GobSerialization{}
+	//})
+	mscontext.Start(nil)
 }
