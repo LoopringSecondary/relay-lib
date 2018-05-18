@@ -28,7 +28,9 @@ import (
 func TestConsumer(t *testing.T) {
 	address := "127.0.0.1:9092"
 	register := &kafka.ConsumerRegister{}
-	register.Initialize(address)
+	brokerList := make([]string, 0)
+	brokerList = append(brokerList, address)
+	register.Initialize(brokerList)
 	err := register.RegisterTopicAndHandler("test", "group1", TestData{}, func(data interface{}) error {
 		dataValue := data.(*TestData)
 		fmt.Printf("Msg : %s, Timestamp : %s \n", dataValue.Msg, dataValue.Timestamp)
