@@ -49,3 +49,11 @@ type MinerOrdersReq struct {
 type MinerOrdersRes struct {
 	List []*types.OrderState
 }
+
+type LatestBlockReq struct {
+}
+
+type LatestBlockRes struct {
+	BlockNumber *big.Int
+	Err         error
+}
