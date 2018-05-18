@@ -20,28 +20,12 @@ package motan_test
 
 import (
 	"fmt"
-	"github.com/Loopring/motan-go/main/demo"
 	"bytes"
 	"testing"
 	"github.com/Loopring/relay-lib/motan"
 	"time"
+	"github.com/Loopring/relay-lib/motan/demo"
 )
-
-
-type  Person struct {
-	Id int
-	Email string
-	Name string
-	Phones []*Person_PhoneNumber
-}
-
-type Person_PhoneNumber struct {
-	Number string
-}
-
-type AddressBook struct {
-	People []*Person
-}
 
 type MotanDemoService struct{}
 
@@ -69,14 +53,13 @@ func (m *Motan2TestService) Hello(params map[string]string) string {
 		buffer.WriteString(k)
 		buffer.WriteString("=")
 		buffer.WriteString(v)
-
 	}
 	fmt.Printf("Motan2TestService hello:%s\n", buffer.String())
 	return buffer.String()
 }
 
 func TestRunServer(t *testing.T) {
-	serverInstance := &Motan2TestService{}
+	serverInstance := &MotanDemoService{}
 	options := motan.MotanServerOptions{}
 	options.ConfFile = "./serverZkDemo.yaml"
 	options.ServerInstance = serverInstance

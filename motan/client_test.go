@@ -22,30 +22,14 @@ import (
 	"testing"
 	"fmt"
 	"github.com/Loopring/relay-lib/motan"
-	//weibomotan "github.com/weibocom/motan-go"
-
+	"github.com/Loopring/relay-lib/motan/demo"
 )
-
-type  Person struct {
-	Id int
-	Email string
-	Name string
-	Phones []*Person_PhoneNumber
-}
-
-type Person_PhoneNumber struct {
-	Number string
-}
-
-type AddressBook struct {
-	People []*Person
-}
 
 func TestInitClient(t *testing.T) {
 
 	options := motan.MotanClientOptions{}
 	options.ConfFile = "./clientZkDemo.yaml"
-	options.ClientId = "test"
+	options.ClientId = "mytest-demo"
 	mclient := motan.InitClient(options)
 	//mccontext := weibomotan.GetClientContext("./clientZkDemo.yaml")
 	//mccontext.Start(nil)
@@ -72,18 +56,18 @@ func TestInitClient(t *testing.T) {
 	//	fmt.Printf("motan async call success! reply:%+v\n", reply)
 	//}
 
-
-	person := &Person{}
+	person := &demo.Person{}
 	person.Id = 100
 	person.Email = "email@sss.com"
 	person.Name = "NameDemo"
-	phoneNumber := new (Person_PhoneNumber)
+	phoneNumber := new (demo.Person_PhoneNumber)
 	phoneNumber.Number = "12232323"
 	person.Phones = append(person.Phones, phoneNumber)
-	address := &AddressBook{}
+	address := &demo.AddressBook{}
 	address.People = append(address.People, person)
-
-	addressRes := &AddressBook{}
+	//address := make(map[string]string)
+	//address["aaa"] = "address111111"
+	addressRes := &demo.AddressBook{}
 
 	err := mclient.Call("hello", []interface{}{address}, addressRes)
 	if err != nil {

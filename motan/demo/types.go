@@ -16,22 +16,20 @@
 
 */
 
-package motan
+package demo
 
-import (
-	"github.com/Loopring/motan-go/serialize"
-	motan "github.com/Loopring/motan-go"
-	motancore "github.com/Loopring/motan-go/core"
-)
-
-func RunServer(options MotanServerOptions) {
-	mscontext := motan.GetMotanServerContext(options.ConfFile)
-	if err := mscontext.RegisterService(options.ServerInstance, ""); nil != err {
-		println("########", err.Error())
-	}
-	extFactory := motan.GetDefaultExtFactory()
-	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
-		return &serialize.GobSerialization{}
-	})
-	mscontext.Start(extFactory)
+type  Person struct {
+	Id int
+	Email string
+	Name string
+	Phones []*Person_PhoneNumber
 }
+
+type Person_PhoneNumber struct {
+	Number string
+}
+
+type AddressBook struct {
+	People []*Person
+}
+

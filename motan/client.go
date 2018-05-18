@@ -19,14 +19,14 @@
 package motan
 
 import (
-	"github.com/Loopring/relay-lib/motan/serialize"
-	weibomotan "github.com/weibocom/motan-go"
-	motancore "github.com/weibocom/motan-go/core"
+	"github.com/Loopring/motan-go/serialize"
+	motan "github.com/Loopring/motan-go"
+	motancore "github.com/Loopring/motan-go/core"
 )
 
-func InitClient(options MotanClientOptions) *weibomotan.Client {
-	mccontext := weibomotan.GetClientContext(options.ConfFile)
-	extFactory := weibomotan.GetDefaultExtFactory()
+func InitClient(options MotanClientOptions) *motan.Client {
+	mccontext := motan.GetClientContext(options.ConfFile)
+	extFactory := motan.GetDefaultExtFactory()
 	extFactory.RegistryExtSerialization(serialize.Gob, 8, func() motancore.Serialization {
 		return &serialize.GobSerialization{}
 	})

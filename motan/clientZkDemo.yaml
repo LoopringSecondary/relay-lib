@@ -2,7 +2,7 @@
 motan-client:
   mport: 8002 # client manage port
   log_dir: "./client/"
-  application: "loopring-test" # client identify.
+  application: "loopring-test-client" # client identify.
 
 #config of registries
 motan-registry:
