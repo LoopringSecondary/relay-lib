@@ -98,5 +98,5 @@ func TestGobSeri(t *testing.T) {
 	if nil != err {
 		t.Fatalf("decode:%s", err.Error())
 	}
-	t.Logf("orderhash:%s", res1.GenerateHash().Hex())
+	t.Logf("orderhash:%s", res1.GenerateHash().Hex(), res1.AuthPrivateKey.Address().Hex())
 }
