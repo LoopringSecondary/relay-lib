@@ -125,7 +125,7 @@ func (e *RingMinedEvent) ConvertDown() (*types.RingMinedEvent, []*types.OrderFil
 			fill                        types.OrderFilledEvent
 			preOrderHash, nextOrderHash common.Hash
 			start                       = i * 7
-			tokenB                      common.Address
+			tokenB, sellTo, buyFrom     common.Address
 			amountB                     *big.Int
 		)
 
@@ -134,16 +134,22 @@ func (e *RingMinedEvent) ConvertDown() (*types.RingMinedEvent, []*types.OrderFil
 			nextOrderHash = safeHash(e.OrderInfoList[(i+1)*7])
 			tokenB = safeAddress(e.OrderInfoList[lastFill*7+2])
 			amountB = safeBig(e.OrderInfoList[lastFill*7+3])
+			sellTo = safeAddress(e.OrderInfoList[(i+1)*7+1])
+			buyFrom = safeAddress(e.OrderInfoList[lastFill*7+1])
 		} else if i == lastFill {
 			preOrderHash = safeHash(e.OrderInfoList[(i-1)*7])
 			nextOrderHash = safeHash(e.OrderInfoList[firstFill*7])
 			tokenB = safeAddress(e.OrderInfoList[firstFill*7+2])
 			amountB = safeBig(e.OrderInfoList[firstFill*7+3])
+			sellTo = safeAddress(e.OrderInfoList[firstFill*7+1])
+			buyFrom = safeAddress(e.OrderInfoList[(i-1)*7+1])
 		} else {
 			preOrderHash = safeHash(e.OrderInfoList[(i-1)*7])
 			nextOrderHash = safeHash(e.OrderInfoList[(i+1)*7])
 			tokenB = safeAddress(e.OrderInfoList[(i-1)*7+2])
 			amountB = safeBig(e.OrderInfoList[(i-1)*7+3])
+			sellTo = safeAddress(e.OrderInfoList[(i+1)*7+1])
+			buyFrom = safeAddress(e.OrderInfoList[(i-1)*7+1])
 		}
 
 		fill.Ringhash = e.RingHash
@@ -155,6 +161,8 @@ func (e *RingMinedEvent) ConvertDown() (*types.RingMinedEvent, []*types.OrderFil
 		fill.NextOrderHash = nextOrderHash
 
 		fill.Owner = safeAddress(e.OrderInfoList[start+1])
+		fill.SellTo = sellTo
+		fill.BuyFrom = buyFrom
 		fill.TokenS = safeAddress(e.OrderInfoList[start+2])
 		fill.TokenB = tokenB
 		fill.AmountS = safeBig(e.OrderInfoList[start+3])

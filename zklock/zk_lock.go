@@ -26,11 +26,10 @@ import (
 	"time"
 )
 
-
 /*todo:
 1、通过zk设置配置文件
 2、节点加入与退出事件
- */
+*/
 
 type ZkLockConfig struct {
 	ZkServers      string
