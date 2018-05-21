@@ -28,8 +28,6 @@ const (
 	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
 	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
 
-	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
-
 	// socket io messages
 	Kafka_Topic_SocketIO_Loopring_Ticker_Updated = "Kafka_Topic_SocketIO_Loopring_Ticker_Updated"
 	Kafka_Topic_SocketIO_Tickers_Updated         = "Kafka_Topic_SocketIO_Tickers_Updated"
