@@ -1,13 +1,13 @@
 package watchcloud
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"net"
 	"time"
-	"fmt"
 )
 
 const region = "ap-northeast-1"
@@ -15,7 +15,7 @@ const namespace = "LoopringDefine"
 
 var cwc *cloudwatch.CloudWatch
 
-func Initialize() (error) {
+func Initialize() error {
 	//NOTE: use default config ~/.asw/credentials
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(region),
