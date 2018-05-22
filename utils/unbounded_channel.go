@@ -3,12 +3,12 @@ package utils
 import "container/list"
 
 //https://medium.com/capital-one-developers/building-an-unbounded-channel-in-go-789e175cd2cd
-func MakeInfinite() (chan <- interface{}, <- chan interface{}) {
+func MakeInfinite() (chan<- interface{}, <-chan interface{}) {
 	in := make(chan interface{})
 	out := make(chan interface{})
 	go func() {
 		buffer := list.New()
-		outCh := func() chan <- interface{} {
+		outCh := func() chan<- interface{} {
 			if buffer.Len() == 0 {
 				return nil
 			}
@@ -22,7 +22,7 @@ func MakeInfinite() (chan <- interface{}, <- chan interface{}) {
 		}
 		for buffer.Len() > 0 || in != nil {
 			select {
-			case v,ok := <- in:
+			case v, ok := <-in:
 				if !ok {
 					in = nil
 				} else {
@@ -30,10 +30,10 @@ func MakeInfinite() (chan <- interface{}, <- chan interface{}) {
 				}
 
 			case outCh() <- curVal(): //will block if buffer is empty
-				head :=	buffer.Front()
+				head := buffer.Front()
 				buffer.Remove(head)
 			}
 		}
 	}()
-	return in,out
+	return in, out
 }
