@@ -16,4 +16,5 @@ func TestSender(t *testing.T) {
 		}
 		time.Sleep(time.Second * 3)
 	}
+	cloudwatch.Close()
 }
