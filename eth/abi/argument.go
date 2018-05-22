@@ -204,6 +204,10 @@ func unpackEmpty(v interface{}, decodedBytes [][]byte) error {
 // unpackTopics
 func (arguments Arguments) unpackTopics(v interface{}, decodedValues [][]byte) error {
 	elem := reflect.ValueOf(v).Elem()
+	if len(decodedValues) < 2 {
+		return fmt.Errorf("abi, wrong length, event unpack topics, need at least 2 topic, got :%d", len(decodedValues))
+	}
+	decodedValues = decodedValues[1:]
 	i := 0
 	for k, arg := range arguments {
 		if arg.Indexed && i < len(decodedValues) {
