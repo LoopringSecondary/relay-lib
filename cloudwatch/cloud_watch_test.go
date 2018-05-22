@@ -11,7 +11,6 @@ import (
 
 func TestSender(t *testing.T) {
 	cloudwatch.Initialize()
-	make
 	for i := 0; i < 10; i++ {
 		err := cloudwatch.PutResponseTimeMetric("hello", 100)
 		if err != nil {
