@@ -63,7 +63,7 @@ func (s *ExtractorService) handle(input interface{}) error {
 	}
 
 	eventemitter.Emit(src.Topic, event)
-	log.Debugf("extractor, send to emitter topic:%s", src.Topic)
+	log.Debugf("extractor, send to emitter topic:%s, data:%s", src.Topic, src.Data)
 
 	return nil
 }
@@ -75,7 +75,6 @@ func Disassemble(src *types.KafkaOnChainEvent) (interface{}, error) {
 		return nil, fmt.Errorf("get event from topic error:cann't found any match topic")
 	}
 
-	log.Debugf(src.Data)
 	if err := json.Unmarshal([]byte(src.Data), event); err != nil {
 		return nil, err
 	}
