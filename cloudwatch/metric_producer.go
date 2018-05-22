@@ -96,49 +96,53 @@ func PutResponseTimeMetric(methodName string, costTime float64) error {
 	dt := &cloudwatch.MetricDatum{}
 	metricName := fmt.Sprintf("response_%s", methodName)
 	dt.MetricName = &metricName
-	dt.Dimensions = []*cloudwatch.Dimension{}
-	dt.Dimensions = append(dt.Dimensions, hostDimension())
 	dt.Value = &costTime
 	unit := cloudwatch.StandardUnitMilliseconds
 	dt.Unit = &unit
 	tms := time.Now()
 	dt.Timestamp = &tms
-
-	return storeMetricLocal(dt)
+	innerPutMetricData(dt)
+	return nil
 }
 
 func PutHeartBeatMetric(metricName string) error {
 	if !IsValid() {
 		return fmt.Errorf("Cloudwatch client has not initialized\n")
 	}
-	res := innerPutHeartBeatMetric(metricName, true)
-	if res != nil {
-		return res
-	}
-	res = innerPutHeartBeatMetric(metricName, false)
-	return res
-}
-
-func innerPutHeartBeatMetric(metricName string, withDimension bool) error {
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
-	if withDimension {
-		dt.Dimensions = []*cloudwatch.Dimension{}
-		dt.Dimensions = append(dt.Dimensions, hostDimension())
-	}
 	hearbeatValue := 1.0
 	dt.Value = &hearbeatValue
 	unit := cloudwatch.StandardUnitCount
 	dt.Unit = &unit
 	tms := time.Now()
 	dt.Timestamp = &tms
-
-	return storeMetricLocal(dt)
+	innerPutMetricData(dt)
+	return nil
 }
 
-func storeMetricLocal(input *cloudwatch.MetricDatum) error {
-	inChan <- input
+func innerPutMetricData(datum *cloudwatch.MetricDatum) {
+	// no dimension metric
+	storeMetricLocal(datum)
+	// host dimension metric
+	cloneDatum := cloneDatum(datum)
+	cloneDatum.Dimensions = []*cloudwatch.Dimension{}
+	cloneDatum.Dimensions = append(cloneDatum.Dimensions, hostDimension())
+	storeMetricLocal(cloneDatum)
+}
+
+func storeMetricLocal(datatum *cloudwatch.MetricDatum) error {
+	inChan <- datatum
 	return nil
+}
+
+func cloneDatum(datum *cloudwatch.MetricDatum) *cloudwatch.MetricDatum {
+	dt := &cloudwatch.MetricDatum{}
+	dt.MetricName = datum.MetricName
+	dt.Value = datum.Value
+	dt.Unit = datum.Unit
+	dt.Timestamp = datum.Timestamp
+	return dt
 }
 
 func batchSendMetricData(datums []*cloudwatch.MetricDatum) {
