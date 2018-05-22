@@ -298,6 +298,7 @@ type WethDepositEvent struct {
 
 func (e *WethDepositEvent) ConvertDown() *types.WethDepositEvent {
 	evt := &types.WethDepositEvent{}
+	evt.Dst = e.DstAddress
 	evt.Amount = e.Value
 
 	return evt
