@@ -20,8 +20,13 @@ var cwc *cloudwatch.CloudWatch
 var inChan chan <- interface{}
 var outChan <- chan interface{}
 
+/*
+ need config following config files for aws sns service connect
+	~/.aws/config/config
+	~/.aws/config/credentials
+*/
+
 func Initialize() error {
-	//NOTE: use default config ~/.asw/credentials
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(region),
 		Credentials: credentials.NewSharedCredentials("", ""),
@@ -105,7 +110,8 @@ func PutHeartBeatMetric(metricName string) error {
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
 	dt.Dimensions = []*cloudwatch.Dimension{}
-	dt.Dimensions = append(dt.Dimensions, globalDimension())
+	dt.Dimensions = append(dt.Dimensions, allDimension())
+	dt.Dimensions = append(dt.Dimensions, hostDimension())
 	hearbeatValue := 1.0
 	dt.Value = &hearbeatValue
 	unit := cloudwatch.StandardUnitCount
@@ -145,11 +151,11 @@ func hostDimension() *cloudwatch.Dimension {
 	return dim
 }
 
-func globalDimension() *cloudwatch.Dimension {
+func allDimension() *cloudwatch.Dimension {
 	dim := &cloudwatch.Dimension{}
-	dimName := "global"
+	dimName := "all"
 	dim.Name = &dimName
-	dimValue := "nt"
+	dimValue := "heartbeat"
 	dim.Value = &dimValue
 	return dim
 }
