@@ -14,7 +14,11 @@ import (
 
 const region = "ap-northeast-1"
 const namespace = "LoopringDefine"
-const obsoleteThreshold = 1000
+const obsoleteCountThreshold = 1000
+const obsoleteTimeoutSeconds = 4
+const batchDatumBufferSize = 2000
+const batchTimeoutSeconds = 2
+const batchSendSize = 500
 
 var cwc *cloudwatch.CloudWatch
 var inChan chan<- interface{}
@@ -37,29 +41,36 @@ func Initialize() error {
 		cwc = cloudwatch.New(sess)
 		inChan, outChan = utils.MakeInfinite()
 		go func() {
-			var obsoleteTimes uint32
+			obsoleteTimes := 0
+			batchDatumBuffer := make([]*cloudwatch.MetricDatum, 0, batchDatumBufferSize)
+			bufferStartTimeStamp := time.Now()
 			for {
 				select {
-				case data, ok := <-outChan:
+				case data, ok := <- outChan:
 					if !ok {
 						log.Error("Receive from cloud watch output channel failed")
 					} else {
-						inputData, ok := data.(*cloudwatch.PutMetricDataInput)
+						datum, ok := data.(*cloudwatch.MetricDatum)
 						if !ok {
 							log.Error("Convert data to PutMetricDataInput failed")
 						} else {
-							if checkObsolete(inputData) {
+							if checkObsolete(datum) {
 								obsoleteTimes += 1
-								if obsoleteTimes >= obsoleteThreshold {
+								if obsoleteTimes >= obsoleteCountThreshold {
 									log.Errorf("Obsolete cloud watch metric data count is %d, just drop\n", obsoleteTimes)
 									obsoleteTimes = 0
 								}
 							} else {
-								cwc.PutMetricData(inputData)
+								batchDatumBuffer = append(batchDatumBuffer, datum)
 								if obsoleteTimes > 0 {
-									log.Errorf("Drop %d obsolete cloud watch metric data\n", obsoleteTimes)
+									fmt.Printf("Drop %d obsolete cloud watch metric data\n", obsoleteTimes)
 									obsoleteTimes = 0
 								}
+							}
+							if checkTimeout(datum, bufferStartTimeStamp) && len(batchDatumBuffer) > 0 || len(batchDatumBuffer) >= batchDatumBufferSize {
+								batchSendMetricData(batchDatumBuffer)
+								batchDatumBuffer = make([]*cloudwatch.MetricDatum, 0, batchDatumBufferSize)
+								bufferStartTimeStamp = *datum.Timestamp
 							}
 						}
 					}
@@ -93,25 +104,28 @@ func PutResponseTimeMetric(methodName string, costTime float64) error {
 	tms := time.Now()
 	dt.Timestamp = &tms
 
-	datums := []*cloudwatch.MetricDatum{}
-	datums = append(datums, dt)
-
-	input := &cloudwatch.PutMetricDataInput{}
-	input.MetricData = datums
-	input.Namespace = namespaceNormal()
-
-	return storeMetricLocal(input)
+	return storeMetricLocal(dt)
 }
 
 func PutHeartBeatMetric(metricName string) error {
 	if !IsValid() {
 		return fmt.Errorf("Cloudwatch client has not initialized\n")
 	}
+	res := innerPutHeartBeatMetric(metricName, true)
+	if res != nil {
+		return res
+	}
+	res = innerPutHeartBeatMetric(metricName, false)
+	return res
+}
+
+func innerPutHeartBeatMetric(metricName string, withDimension bool) error {
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
-	dt.Dimensions = []*cloudwatch.Dimension{}
-	dt.Dimensions = append(dt.Dimensions, allDimension())
-	dt.Dimensions = append(dt.Dimensions, hostDimension())
+	if withDimension {
+		dt.Dimensions = []*cloudwatch.Dimension{}
+		dt.Dimensions = append(dt.Dimensions, hostDimension())
+	}
 	hearbeatValue := 1.0
 	dt.Value = &hearbeatValue
 	unit := cloudwatch.StandardUnitCount
@@ -119,23 +133,40 @@ func PutHeartBeatMetric(metricName string) error {
 	tms := time.Now()
 	dt.Timestamp = &tms
 
-	datums := []*cloudwatch.MetricDatum{}
-	datums = append(datums, dt)
-
-	input := &cloudwatch.PutMetricDataInput{}
-	input.MetricData = datums
-	input.Namespace = namespaceNormal()
-
-	return storeMetricLocal(input)
+	return storeMetricLocal(dt)
 }
 
-func storeMetricLocal(input *cloudwatch.PutMetricDataInput) error {
+func storeMetricLocal(input *cloudwatch.MetricDatum) error {
 	inChan <- input
 	return nil
 }
 
-func checkObsolete(input *cloudwatch.PutMetricDataInput) bool {
-	return time.Now().UnixNano()-input.MetricData[0].Timestamp.UnixNano() > int64(1000*1000)
+func batchSendMetricData(datums []*cloudwatch.MetricDatum) {
+	//fmt.Printf("batchSendMetricData %s send datums size %d\n", time.Now().Format(time.RFC3339), len(datums))
+	for i := 0;; i++ {
+		if i * batchSendSize >= len(datums) {
+			return
+		}
+		input := &cloudwatch.PutMetricDataInput{}
+		endIndex := (i+1)*batchSendSize
+		if endIndex > len(datums) {
+			endIndex = len(datums)
+		}
+		input.MetricData = datums[i*batchSendSize: endIndex]
+		input.Namespace = namespaceNormal()
+		go func() {
+			cwc.PutMetricData(input)
+		}()
+	}
+}
+
+func checkObsolete(datum *cloudwatch.MetricDatum) bool {
+	//fmt.Printf("checkObsolete : %d %d %d \n", time.Now().UnixNano(), datum.Timestamp.UnixNano(), time.Now().UnixNano() - datum.Timestamp.UnixNano())
+	return time.Now().UnixNano() - datum.Timestamp.UnixNano() > 1000*1000*1000*obsoleteTimeoutSeconds
+}
+
+func checkTimeout(datum *cloudwatch.MetricDatum, startTime time.Time) bool {
+	return datum.Timestamp.UnixNano() - startTime.UnixNano() > 1000*1000*1000*batchTimeoutSeconds
 }
 
 func namespaceNormal() *string {
@@ -148,15 +179,6 @@ func hostDimension() *cloudwatch.Dimension {
 	ipDimName := "host"
 	dim.Name = &ipDimName
 	dim.Value = getIp()
-	return dim
-}
-
-func allDimension() *cloudwatch.Dimension {
-	dim := &cloudwatch.Dimension{}
-	dimName := "all"
-	dim.Name = &dimName
-	dimValue := "heartbeat"
-	dim.Value = &dimValue
 	return dim
 }
 
