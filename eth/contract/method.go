@@ -259,11 +259,8 @@ type WethDepositMethod struct {
 
 func (e *WethDepositMethod) ConvertDown() *types.WethDepositEvent {
 	evt := &types.WethDepositEvent{}
-	evt.Amount = e.Value
-
 	return evt
 }
-
 
 type WethWithdrawalMethod struct {
 	Value *big.Int `fieldName:"wad" fieldId:"0"`
