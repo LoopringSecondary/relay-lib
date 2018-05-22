@@ -163,7 +163,7 @@ func eventToTopic(event interface{}) string {
 	switch e := event.(type) {
 	case *types.SubmitRingMethodEvent:
 		topic = eventemitter.Miner_SubmitRing_Method
-	case types.OrderCancelledEvent:
+	case *types.OrderCancelledEvent:
 		topic = eventemitter.CancelOrder
 	case *types.CutoffEvent:
 		topic = eventemitter.CutoffAll
