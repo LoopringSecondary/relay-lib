@@ -28,15 +28,19 @@ import (
 )
 
 const (
-	METHOD_UNKNOWN         = ""
-	METHOD_SUBMIT_RING     = "submitRing"
-	METHOD_CANCEL_ORDER    = "cancelOrder"
-	METHOD_CUTOFF_ALL      = "cancelAllOrders"
-	METHOD_CUTOFF_PAIR     = "cancelAllOrdersByTradingPair"
-	METHOD_WETH_DEPOSIT    = "deposit"
-	METHOD_WETH_WITHDRAWAL = "withdraw"
-	METHOD_APPROVE         = "approve"
-	METHOD_TRANSFER        = "transfer"
+	METHOD_UNKNOWN              = ""
+	METHOD_SUBMIT_RING          = "submitRing"
+	METHOD_CANCEL_ORDER         = "cancelOrder"
+	METHOD_CUTOFF_ALL           = "cancelAllOrders"
+	METHOD_CUTOFF_PAIR          = "cancelAllOrdersByTradingPair"
+	METHOD_WETH_DEPOSIT         = "deposit"
+	METHOD_WETH_WITHDRAWAL      = "withdraw"
+	METHOD_APPROVE              = "approve"
+	METHOD_TRANSFER             = "transfer"
+	METHOD_TOKEN_REGISTRY       = "registerToken"
+	METHOD_TOKEN_UNREGISTRY     = "unregisterToken"
+	METHOD_ADDRESS_AUTHORIZED   = "authorizeAddress"
+	METHOD_ADDRESS_DEAUTHORIZED = "deauthorizeAddress"
 )
 
 func TxIsSubmitRing(methodName string) bool {
