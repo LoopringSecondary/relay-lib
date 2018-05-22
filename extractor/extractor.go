@@ -72,7 +72,7 @@ func (s *ExtractorService) handle(input interface{}) error {
 func Disassemble(src *types.KafkaOnChainEvent) (interface{}, error) {
 	event := topicToEvent(src.Topic)
 	if event == nil {
-		return nil, fmt.Errorf("get event from topic error")
+		return nil, fmt.Errorf("get event from topic error:cann't found any match topic")
 	}
 
 	log.Debugf(src.Data)
@@ -86,7 +86,7 @@ func Disassemble(src *types.KafkaOnChainEvent) (interface{}, error) {
 func Assemble(input interface{}) (*types.KafkaOnChainEvent, error) {
 	topic := eventToTopic(input)
 	if topic == "" {
-		return nil, fmt.Errorf("get topic from event error")
+		return nil, fmt.Errorf("get topic from event error:cann't found any match topic")
 	}
 
 	// marshal event to bytes
