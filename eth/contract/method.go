@@ -253,6 +253,18 @@ func (method *CutoffPairMethod) ConvertDown() *types.CutoffPairEvent {
 	return evt
 }
 
+type WethDepositMethod struct {
+	Value *big.Int `fieldId:"0"`
+}
+
+func (e *WethDepositMethod) ConvertDown() *types.WethDepositEvent {
+	evt := &types.WethDepositEvent{}
+	evt.Amount = e.Value
+
+	return evt
+}
+
+
 type WethWithdrawalMethod struct {
 	Value *big.Int `fieldName:"wad" fieldId:"0"`
 }
