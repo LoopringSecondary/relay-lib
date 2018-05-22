@@ -1,13 +1,11 @@
 package cloudwatch_test
 
-
 import (
+	"fmt"
 	"github.com/Loopring/relay-lib/cloudwatch"
 	"testing"
 	"time"
-	"fmt"
 )
-
 
 func TestSender(t *testing.T) {
 	cloudwatch.Initialize()

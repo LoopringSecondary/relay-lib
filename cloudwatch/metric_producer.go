@@ -2,12 +2,12 @@ package cloudwatch
 
 import (
 	"fmt"
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/utils"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/Loopring/relay-lib/utils"
-	"github.com/Loopring/relay-lib/log"
 	"net"
 	"time"
 )
@@ -17,8 +17,8 @@ const namespace = "LoopringDefine"
 const obsoleteThreshold = 1000
 
 var cwc *cloudwatch.CloudWatch
-var inChan chan <- interface{}
-var outChan <- chan interface{}
+var inChan chan<- interface{}
+var outChan <-chan interface{}
 
 func Initialize() error {
 	//NOTE: use default config ~/.asw/credentials
@@ -35,7 +35,7 @@ func Initialize() error {
 			var obsoleteTimes uint32
 			for {
 				select {
-				case data, ok := <- outChan:
+				case data, ok := <-outChan:
 					if !ok {
 						log.Error("receive from watchcloud output channel failed")
 					} else {
@@ -129,7 +129,7 @@ func storeMetricLocal(input *cloudwatch.PutMetricDataInput) error {
 }
 
 func checkObsolete(input *cloudwatch.PutMetricDataInput) bool {
-	return time.Now().UnixNano() - input.MetricData[0].Timestamp.UnixNano() > int64(1000*1000)
+	return time.Now().UnixNano()-input.MetricData[0].Timestamp.UnixNano() > int64(1000*1000)
 }
 
 func namespaceNormal() *string {
