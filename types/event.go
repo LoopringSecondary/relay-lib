@@ -65,8 +65,8 @@ func StrToTxStatus(txType string) TxStatus {
 }
 
 type TxInfo struct {
-	Protocol        common.Address `json:"from"`
-	DelegateAddress common.Address `json:"to"`
+	Protocol        common.Address `json:"protocol"`
+	DelegateAddress common.Address `json:"delegate"`
 	From            common.Address `json:"from"`
 	To              common.Address `json:"to"`
 	BlockHash       common.Hash    `json:"block_hash"`
