@@ -109,9 +109,6 @@ func (abi ABI) Pack(name string, args ...interface{}) ([]byte, error) {
 
 // Unpack output in v according to the abi specification
 func (abi ABI) UnpackMethod(v interface{}, name string, output []byte) (err error) {
-	if len(output) == 0 {
-		return fmt.Errorf("abi: unmarshalling empty output")
-	}
 	if len(output)%32 != 0 {
 		return fmt.Errorf("abi: improperly formatted output")
 	}
