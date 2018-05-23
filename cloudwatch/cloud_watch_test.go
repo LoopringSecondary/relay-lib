@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-func TestSender(t *testing.T) {
+func TestHeartBeatMetric(t *testing.T) {
 	cloudwatch.Initialize()
 	for i := 0; i < 10; i++ {
-		err := cloudwatch.PutResponseTimeMetric("hello", 100)
+		err := cloudwatch.PutHeartBeatMetric("cronJob")
 		if err != nil {
 			fmt.Printf("Failed send metric data %s", err.Error())
 		}
