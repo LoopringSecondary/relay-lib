@@ -43,20 +43,24 @@ func Initialize(options kafka.KafkaOptions, group string) error {
 	serv.consumer = &kafka.ConsumerRegister{}
 	serv.consumer.Initialize(options.Brokers)
 	if err := serv.consumer.RegisterTopicAndHandler(kafka_topic, group, types.KafkaOnChainEvent{}, serv.handle); err != nil {
+		log.Debugf("----extractor register consumer failed:%s", err.Error())
 		return err
 	}
 
+	log.Debugf("----extractor init success")
 	return nil
 }
 
 func (s *ExtractorService) handle(input interface{}) error {
 	src, ok := input.(*types.KafkaOnChainEvent)
 	if !ok {
+		log.Errorf("extractor,input type should be *KafkaOnChainEvent")
 		return fmt.Errorf("extractor,input type should be *KafkaOnChainEvent")
 	}
 
 	event, err := Disassemble(src)
 	if err != nil {
+		log.Errorf("extractor, disassemble error:%s", err.Error())
 		return fmt.Errorf("extractor, disassemble error:%s", err.Error())
 	}
 
