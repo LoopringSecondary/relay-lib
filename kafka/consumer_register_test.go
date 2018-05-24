@@ -23,9 +23,13 @@ import (
 	"github.com/Loopring/relay-lib/kafka"
 	"testing"
 	"time"
+	"github.com/Loopring/relay-lib/log"
+	"go.uber.org/zap"
+	"encoding/json"
 )
 
 func TestConsumer(t *testing.T) {
+	initLog()
 	address := "127.0.0.1:9092"
 	register := &kafka.ConsumerRegister{}
 	brokerList := make([]string, 0)
@@ -45,4 +49,28 @@ func TestConsumer(t *testing.T) {
 	defer func() {
 		register.Close()
 	}()
+}
+
+func initLog() {
+	logConfig := `{
+	  "level": "debug",
+	  "development": false,
+	  "encoding": "json",
+	  "outputPaths": ["stdout"],
+	  "errorOutputPaths": ["stderr"],
+	  "encoderConfig": {
+	    "messageKey": "message",
+	    "levelKey": "level",
+	    "levelEncoder": "lowercase"
+	  }
+	}`
+	rawJSON := []byte(logConfig)
+	var (
+		cfg zap.Config
+		err error
+	)
+	if err = json.Unmarshal(rawJSON, &cfg); err != nil {
+		panic(err)
+	}
+	log.Initialize(cfg)
 }
