@@ -24,7 +24,6 @@ import (
 	"github.com/Loopring/relay-lib/eventemitter"
 	"github.com/Loopring/relay-lib/kafka"
 	"github.com/Loopring/relay-lib/types"
-	"github.com/Loopring/relay-lib/log"
 )
 
 // 接收来自kafka消息,解析成不同数据类型后使用lib/eventemitter模块发送
@@ -43,29 +42,25 @@ func Initialize(options kafka.KafkaOptions, group string) error {
 	serv.consumer = &kafka.ConsumerRegister{}
 	serv.consumer.Initialize(options.Brokers)
 	if err := serv.consumer.RegisterTopicAndHandler(kafka_topic, group, types.KafkaOnChainEvent{}, serv.handle); err != nil {
-		log.Debugf("----extractor register consumer failed:%s", err.Error())
 		return err
 	}
 
-	log.Debugf("----extractor init success")
 	return nil
 }
 
 func (s *ExtractorService) handle(input interface{}) error {
 	src, ok := input.(*types.KafkaOnChainEvent)
 	if !ok {
-		log.Errorf("extractor,input type should be *KafkaOnChainEvent")
 		return fmt.Errorf("extractor,input type should be *KafkaOnChainEvent")
 	}
 
 	event, err := Disassemble(src)
 	if err != nil {
-		log.Errorf("extractor, disassemble error:%s", err.Error())
 		return fmt.Errorf("extractor, disassemble error:%s", err.Error())
 	}
 
 	// todo: delete after test
-	log.Debugf("extractor, consume topic:%s ,data:%s", src.Topic, src.Data)
+	fmt.Printf("extractor, consume topic:%s ,data:%s\n", src.Topic, src.Data)
 
 	eventemitter.Emit(src.Topic, event)
 

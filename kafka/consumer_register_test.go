@@ -19,13 +19,13 @@
 package kafka_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Loopring/relay-lib/kafka"
-	"testing"
-	"time"
 	"github.com/Loopring/relay-lib/log"
 	"go.uber.org/zap"
-	"encoding/json"
+	"testing"
+	"time"
 )
 
 func TestConsumer(t *testing.T) {
