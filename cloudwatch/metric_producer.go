@@ -25,7 +25,7 @@ var inChan chan<- interface{}
 var outChan <-chan interface{}
 
 /*
- need config following config files for aws sns service connect
+ need following config files for aws service connect
 	~/.aws/config/config
 	~/.aws/config/credentials
 */
@@ -41,7 +41,7 @@ func Initialize() error {
 		cwc = cloudwatch.New(sess)
 		inChan, outChan = utils.MakeInfinite()
 		go func() {
-			obsoleteTimes := 0
+			obsoleteCount := 0
 			batchDatumBuffer := make([]*cloudwatch.MetricDatum, 0, batchDatumBufferSize)
 			bufferStartTimeStamp := time.Now()
 			for {
@@ -55,16 +55,16 @@ func Initialize() error {
 							log.Error("Convert data to PutMetricDataInput failed")
 						} else {
 							if checkObsolete(datum) {
-								obsoleteTimes += 1
-								if obsoleteTimes >= obsoleteCountThreshold {
-									log.Errorf("Obsolete cloud watch metric data count is %d, just drop\n", obsoleteTimes)
-									obsoleteTimes = 0
+								obsoleteCount += 1
+								if obsoleteCount >= obsoleteCountThreshold {
+									log.Errorf("Obsolete cloud watch metric data count is %d, just drop\n", obsoleteCount)
+									obsoleteCount = 0
 								}
 							} else {
 								batchDatumBuffer = append(batchDatumBuffer, datum)
-								if obsoleteTimes > 0 {
-									fmt.Printf("Drop %d obsolete cloud watch metric data\n", obsoleteTimes)
-									obsoleteTimes = 0
+								if obsoleteCount > 0 {
+									log.Errorf("Drop %d obsolete cloud watch metric data\n", obsoleteCount)
+									obsoleteCount = 0
 								}
 							}
 							if checkTimeout(datum, bufferStartTimeStamp) && len(batchDatumBuffer) > 0 || len(batchDatumBuffer) >= batchDatumBufferSize {
@@ -111,8 +111,8 @@ func PutHeartBeatMetric(metricName string) error {
 	}
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
-	hearbeatValue := 1.0
-	dt.Value = &hearbeatValue
+	heartbeatValue := 1.0
+	dt.Value = &heartbeatValue
 	unit := cloudwatch.StandardUnitCount
 	dt.Unit = &unit
 	tms := time.Now()
