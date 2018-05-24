@@ -37,6 +37,7 @@ const (
 	ORDER_CUTOFF     OrderStatus = 5
 	ORDER_EXPIRE     OrderStatus = 6
 	ORDER_PENDING    OrderStatus = 7
+	ORDER_CANCELLING OrderStatus = 8
 	ORDER_P2P_LOCKED OrderStatus = 17
 	//ORDER_BALANCE_INSUFFICIENT   OrderStatus = 7
 	//ORDER_ALLOWANCE_INSUFFICIENT OrderStatus = 8
