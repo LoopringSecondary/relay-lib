@@ -25,7 +25,7 @@ import (
 )
 
 type ClusterOptions struct {
-	StartNodes  []string
+	StartNodes   []string
 	ConnTimeout  int
 	ReadTimeout  int
 	WriteTimeout int
@@ -34,8 +34,8 @@ type ClusterOptions struct {
 }
 
 type ClusterCacheImpl struct {
-	options    redis.Options
-	cluster    *redis.Cluster
+	options redis.Options
+	cluster *redis.Cluster
 }
 
 func (impl *ClusterCacheImpl) Initialize(cfg interface{}) {
