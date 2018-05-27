@@ -86,8 +86,15 @@ func (cr *ConsumerRegister) RegisterTopicAndHandler(topic string, groupId string
 			case msg, ok := <-consumer.Messages():
 				if ok {
 					data := (reflect.New(reflect.TypeOf(data))).Interface()
-					json.Unmarshal(msg.Value, data)
-					action(data)
+					err := json.Unmarshal(msg.Value, data)
+					if err != nil {
+						log.Errorf("Kafka consumer failed Unmarshal data for type %s", reflect.TypeOf(data).Name())
+					} else {
+						err := action(data)
+						if err != nil {
+							log.Errorf("Kafka consumer message handler execute failed : %s", err.Error())
+						}
+					}
 					consumer.MarkOffset(msg, "") // mark message as processed
 				}
 			}
