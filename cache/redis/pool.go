@@ -149,6 +149,10 @@ func (impl *RedisCacheImpl) Del(key string) error {
 }
 
 func (impl *RedisCacheImpl) Dels(keys []string) error {
+	if len(keys) == 0 {
+		return fmt.Errorf("keys array is empty")
+	}
+
 	conn := impl.pool.Get()
 	defer conn.Close()
 
