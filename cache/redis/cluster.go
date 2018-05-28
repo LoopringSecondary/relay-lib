@@ -131,6 +131,9 @@ func (impl *ClusterCacheImpl) Del(key string) error {
 }
 
 func (impl *ClusterCacheImpl) Dels(keys []string) error {
+	if len(keys) == 0 {
+		return fmt.Errorf("key array is empty")
+	}
 
 	//log.Info("[REDIS-Dels]")
 
