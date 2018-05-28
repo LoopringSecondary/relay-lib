@@ -130,9 +130,9 @@ func (impl *ClusterCacheImpl) Del(key string) error {
 	return err
 }
 
-func (impl *ClusterCacheImpl) Dels(keys []string) error {
-	if len(keys) == 0 {
-		return fmt.Errorf("key array is empty")
+func (impl *ClusterCacheImpl) Dels(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("redis dels args empty")
 	}
 
 	//log.Info("[REDIS-Dels]")
@@ -142,7 +142,7 @@ func (impl *ClusterCacheImpl) Dels(keys []string) error {
 
 	var list []interface{}
 
-	for _, v := range keys {
+	for _, v := range args {
 		list = append(list, v)
 	}
 
@@ -183,7 +183,9 @@ func (impl *ClusterCacheImpl) Keys(keyFormat string) ([][]byte, error) {
 }
 
 func (impl *ClusterCacheImpl) HMSet(key string, ttl int64, args ...[]byte) error {
-
+	if len(args) == 0 {
+		return fmt.Errorf("redis hmset args empty")
+	}
 	//log.Info("[REDIS-ZAdd] key : " + key)
 
 	cluster := impl.cluster
@@ -212,7 +214,9 @@ func (impl *ClusterCacheImpl) HMSet(key string, ttl int64, args ...[]byte) error
 }
 
 func (impl *ClusterCacheImpl) ZAdd(key string, ttl int64, args ...[]byte) error {
-
+	if len(args) == 0 {
+		return fmt.Errorf("redis zadd args empty")
+	}
 	//log.Info("[REDIS-ZAdd] key : " + key)
 
 	cluster := impl.cluster
@@ -240,7 +244,9 @@ func (impl *ClusterCacheImpl) ZAdd(key string, ttl int64, args ...[]byte) error 
 }
 
 func (impl *ClusterCacheImpl) HMGet(key string, fields ...[]byte) ([][]byte, error) {
-
+	if len(fields) == 0 {
+		return [][]byte{}, fmt.Errorf("redis hmget fields empty")
+	}
 	//log.Info("[REDIS-HMGet] key : " + key)
 
 	cluster := impl.cluster
@@ -300,7 +306,9 @@ func (impl *ClusterCacheImpl) ZRange(key string, start, stop int64, withScores b
 }
 
 func (impl *ClusterCacheImpl) HDel(key string, fields ...[]byte) (int64, error) {
-
+	if len(fields) == 0 {
+		return 0, fmt.Errorf("redis hdel fields empty")
+	}
 	//log.Info("[REDIS-HDel] key : " + key)
 
 	cluster := impl.cluster
@@ -363,7 +371,9 @@ func (impl *ClusterCacheImpl) ZRemRangeByScore(key string, start, stop int64) (i
 }
 
 func (impl *ClusterCacheImpl) SRem(key string, members ...[]byte) (int64, error) {
-
+	if len(members) == 0 {
+		return 0, fmt.Errorf("redis srem members empty")
+	}
 	//log.Info("[REDIS-SRem] key : " + key)
 
 	cluster := impl.cluster
@@ -462,7 +472,9 @@ func (impl *ClusterCacheImpl) HExists(key string, field []byte) (bool, error) {
 }
 
 func (impl *ClusterCacheImpl) SAdd(key string, ttl int64, members ...[]byte) error {
-
+	if len(members) == 0 {
+		return fmt.Errorf("redis sadd members empty")
+	}
 	//log.Info("[REDIS-SAdd] key : " + key)
 
 	cluster := impl.cluster
