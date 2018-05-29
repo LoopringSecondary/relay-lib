@@ -2,16 +2,16 @@ package multihash
 
 import (
 	"crypto/sha1"
-	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
 	"fmt"
 
-	"github.com/spaolacci/murmur3"
-	blake2b "golang.org/x/crypto/blake2b"
+	keccak "github.com/gxed/hashland/keccakpg"
+	blake2b "github.com/minio/blake2b-simd"
+	sha256 "github.com/minio/sha256-simd"
+	murmur3 "github.com/spaolacci/murmur3"
 	blake2s "golang.org/x/crypto/blake2s"
 	sha3 "golang.org/x/crypto/sha3"
-	keccak "leb.io/hashland/keccakpg"
 )
 
 // ErrSumNotSupported is returned when the Sum function code is not implemented
@@ -47,20 +47,8 @@ func Sum(data []byte, code uint64, length int) (Multihash, error) {
 			return nil, fmt.Errorf("unsupported length for blake2s: %d", olen)
 		}
 	case isBlake2b(code):
-		olen := code - BLAKE2B_MIN + 1
-		switch olen {
-		case 32:
-			out := blake2b.Sum256(data)
-			d = out[:]
-		case 48:
-			out := blake2b.Sum384(data)
-			d = out[:]
-		case 64:
-			out := blake2b.Sum512(data)
-			d = out[:]
-		default:
-			return nil, fmt.Errorf("unsupported length for blake2b: %d", olen)
-		}
+		olen := uint8(code - BLAKE2B_MIN + 1)
+		d = sumBlake2b(olen, data)
 	default:
 		switch code {
 		case ID:
@@ -113,6 +101,19 @@ func isBlake2s(code uint64) bool {
 }
 func isBlake2b(code uint64) bool {
 	return code >= BLAKE2B_MIN && code <= BLAKE2B_MAX
+}
+
+func sumBlake2b(size uint8, data []byte) []byte {
+	hasher, err := blake2b.New(&blake2b.Config{Size: size})
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := hasher.Write(data); err != nil {
+		panic(err)
+	}
+
+	return hasher.Sum(nil)[:]
 }
 
 func sumID(data []byte) []byte {

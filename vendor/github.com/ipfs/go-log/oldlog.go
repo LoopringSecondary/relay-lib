@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	tracer "github.com/ipfs/go-log/tracer"
+
+	colorable "github.com/mattn/go-colorable"
+	opentrace "github.com/opentracing/opentracing-go"
 	logging "github.com/whyrusleeping/go-logging"
 )
 
@@ -44,7 +48,7 @@ func SetupLogging() {
 		lfmt = LogFormats[defaultLogFormat]
 	}
 
-	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	backend := logging.NewLogBackend(colorable.NewColorableStderr(), "", 0)
 	logging.SetBackend(backend)
 	logging.SetFormatter(logging.MustStringFormatter(lfmt))
 
@@ -57,6 +61,12 @@ func SetupLogging() {
 			fmt.Println("error setting log levels", err)
 		}
 	}
+
+	// TracerPlugins are instantiated after this, so use loggable tracer
+	// by default, if a TracerPlugin is added it will override this
+	lgblRecorder := tracer.NewLoggableRecorder()
+	lgblTracer := tracer.New(lgblRecorder)
+	opentrace.SetGlobalTracer(lgblTracer)
 
 	SetAllLoggers(lvl)
 }

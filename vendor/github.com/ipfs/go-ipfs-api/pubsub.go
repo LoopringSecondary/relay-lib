@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 
-	"github.com/libp2p/go-floodsub"
 	"github.com/libp2p/go-libp2p-peer"
+	pb "github.com/libp2p/go-libp2p-pubsub/pb"
 )
 
 // PubSubRecord is a record received via PubSub.
@@ -23,8 +23,16 @@ type PubSubRecord interface {
 	TopicIDs() []string
 }
 
+type message struct {
+	*pb.Message
+}
+
+func (m *message) GetFrom() peer.ID {
+	return peer.ID(m.Message.GetFrom())
+}
+
 type floodsubRecord struct {
-	msg *floodsub.Message
+	msg *message
 }
 
 func (r floodsubRecord) From() peer.ID {
@@ -55,7 +63,6 @@ func newPubSubSubscription(resp *Response) *PubSubSubscription {
 		resp: resp,
 	}
 
-	sub.Next() // skip empty element used for flushing
 	return sub
 }
 
@@ -67,7 +74,7 @@ func (s *PubSubSubscription) Next() (PubSubRecord, error) {
 
 	d := json.NewDecoder(s.resp.Output)
 
-	r := &floodsub.Message{}
+	r := &message{}
 	err := d.Decode(r)
 
 	return floodsubRecord{msg: r}, err
