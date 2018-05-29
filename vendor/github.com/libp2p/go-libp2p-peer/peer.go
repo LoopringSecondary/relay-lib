@@ -2,28 +2,21 @@
 package peer
 
 import (
+	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
 	logging "github.com/ipfs/go-log" // ID represents the identity of a peer.
+	b58 "github.com/jbenet/go-base58"
 	ic "github.com/libp2p/go-libp2p-crypto"
-	b58 "github.com/mr-tron/base58/base58"
+	mc "github.com/multiformats/go-multicodec-packed"
 	mh "github.com/multiformats/go-multihash"
 )
 
-// MaxInlineKeyLength is the maximum length a key can be for it to be inlined in
-// the peer ID.
-//
-// * When `len(pubKey.Bytes()) <= MaxInlineKeyLength`, the peer ID is the
-//   identity multihash hash of the public key.
-// * When `len(pubKey.Bytes()) > MaxInlineKeyLength`, the peer ID is the
-//   sha2-256 multihash of the public key.
-const MaxInlineKeyLength = 42
-
 var log = logging.Logger("peer")
 
-// ID is a libp2p peer identity.
 type ID string
 
 // Pretty returns a b58-encoded string of the ID
@@ -73,23 +66,77 @@ func (id ID) MatchesPublicKey(pk ic.PubKey) bool {
 	return oid == id
 }
 
-// ExtractPublicKey attempts to extract the public key from an ID
-//
-// This method returns nil, nil if the peer ID looks valid but it can't extract
-// the public key.
-func (id ID) ExtractPublicKey() (ic.PubKey, error) {
+var MultihashDecodeErr = errors.New("unable to decode multihash")
+var MultihashCodecErr = errors.New("unexpected multihash codec")
+var MultihashLengthErr = errors.New("unexpected multihash length")
+var CodePrefixErr = errors.New("unexpected code prefix")
+
+func (id ID) ExtractEd25519PublicKey() (ic.PubKey, error) {
+	// ed25519 pubkey identity format
+	// <identity mc><length (2 + 32 = 34)><ed25519-pub mc><ed25519 pubkey>
+	// <0x00       ><0x22                ><0xed01        ><ed25519 pubkey>
+
+	var nilPubKey ic.PubKey
+
+	// Decode multihash
 	decoded, err := mh.Decode([]byte(id))
 	if err != nil {
-		return nil, err
+		return nilPubKey, MultihashDecodeErr
 	}
+
+	// Check ID multihash codec
 	if decoded.Code != mh.ID {
-		return nil, nil
+		return nilPubKey, MultihashCodecErr
 	}
-	pk, err := ic.UnmarshalPublicKey(decoded.Digest)
+
+	// Check multihash length
+	if decoded.Length != 2+32 {
+		return nilPubKey, MultihashLengthErr
+	}
+
+	// Split prefix
+	code, pubKeyBytes := mc.SplitPrefix(decoded.Digest)
+
+	// Check ed25519 code
+	if code != mc.Ed25519Pub {
+		return nilPubKey, CodePrefixErr
+	}
+
+	// Unmarshall public key
+	pubKey, err := ic.UnmarshalEd25519PublicKey(pubKeyBytes)
 	if err != nil {
-		return nil, err
+		// Should never occur because of the check decoded.Length != 2+32
+		return nilPubKey, fmt.Errorf("Unexpected error unmarshalling Ed25519 public key")
 	}
-	return pk, nil
+
+	return pubKey, nil
+}
+
+// ExtractPublicKey attempts to extract the public key from an ID
+func (id ID) ExtractPublicKey() ic.PubKey {
+	var pk ic.PubKey
+
+	// Try extract ed25519 pubkey
+	pk, err := id.ExtractEd25519PublicKey()
+	if err != nil {
+		log.Info(err, id)
+	}
+
+	if pk != nil {
+		return pk
+	}
+
+	// Try extract other type of pubkey
+	/*pk, err = id.Extract...PublicKey()
+	if err != nil {
+		log.Error(err, id)
+	}
+
+	if pk != nil {
+		return pk
+	}*/
+
+	return pk
 }
 
 // IDFromString cast a string to ID type, and validate
@@ -124,7 +171,7 @@ func IDB58Encode(id ID) string {
 	return b58.Encode([]byte(id))
 }
 
-// IDHexDecode returns a hex-decoded Peer
+// IDHexDecode returns a b58-decoded Peer
 func IDHexDecode(s string) (ID, error) {
 	m, err := mh.FromHexString(s)
 	if err != nil {
@@ -133,7 +180,7 @@ func IDHexDecode(s string) (ID, error) {
 	return ID(m), err
 }
 
-// IDHexEncode returns hex-encoded string
+// IDHexEncode returns b58-encoded string
 func IDHexEncode(id ID) string {
 	return hex.EncodeToString([]byte(id))
 }
@@ -144,11 +191,26 @@ func IDFromPublicKey(pk ic.PubKey) (ID, error) {
 	if err != nil {
 		return "", err
 	}
-	var alg uint64 = mh.SHA2_256
-	if len(b) <= MaxInlineKeyLength {
-		alg = mh.ID
+	hash, _ := mh.Sum(b, mh.SHA2_256, -1)
+	return ID(hash), nil
+}
+
+// IDFromEd25519PublicKey returns the Peer ID corresponding to Id25519 pk
+func IDFromEd25519PublicKey(pk ic.PubKey) (ID, error) {
+	b, err := pk.Bytes()
+	if err != nil {
+		return "", err
 	}
-	hash, _ := mh.Sum(b, alg, -1)
+
+	// Build the ed25519 public key multi-codec
+	Ed25519PubMultiCodec := make([]byte, 2)
+	binary.PutUvarint(Ed25519PubMultiCodec, uint64(mc.Ed25519Pub))
+
+	hash, err := mh.Sum(append(Ed25519PubMultiCodec, b[len(b)-32:]...), mh.ID, 34)
+	if err != nil {
+		return "", err
+	}
+
 	return ID(hash), nil
 }
 

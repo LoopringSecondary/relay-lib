@@ -2,7 +2,6 @@ package tar
 
 import (
 	"archive/tar"
-	"fmt"
 	"io"
 	"os"
 	gopath "path"
@@ -11,30 +10,10 @@ import (
 )
 
 type Extractor struct {
-	Path     string
-	Progress func(int64) int64
-
-	// SanitizePathFunc can be provided if you wish to inspect and/or modify the source path
-	// returning an error from this function will abort extraction
-	SanitizePathFunc func(path string) (saferPath string, userDefined error)
-
-	// LinkFunc can be provided for user specified handling of filesystem links
-	// returning an error from this function aborts extraction
-	LinkFunc func(Link) error
-}
-
-// Link represents a filesystem link where Name is the link's destination path,
-// Target is what the link actually points to,
-// and Root is the extraction root
-type Link struct {
-	Root, Name, Target string
+	Path string
 }
 
 func (te *Extractor) Extract(reader io.Reader) error {
-	if isNullDevice(te.Path) {
-		return nil
-	}
-
 	tarReader := tar.NewReader(reader)
 
 	// Check if the output path already exists, so we know whether we should
@@ -60,97 +39,50 @@ func (te *Extractor) Extract(reader io.Reader) error {
 			break
 		}
 
-		switch header.Typeflag {
-		case tar.TypeDir:
+		if header.Typeflag == tar.TypeDir {
 			if err := te.extractDir(header, i); err != nil {
 				return err
 			}
-		case tar.TypeReg:
-			if err := te.extractFile(header, tarReader, i, rootExists, rootIsDir); err != nil {
-				return err
-			}
-		case tar.TypeSymlink:
-			if err := te.extractSymlink(header); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("unrecognized tar header type: %d", header.Typeflag)
+			continue
+		}
+
+		if err := te.extractFile(header, tarReader, i, rootExists, rootIsDir); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-// Sanitize sets up the extractor to use built in sanitation functions
-// (Modify paths to be platform legal, symlinks may not escape extraction root)
-// or unsets any previously set sanitation functions on the extractor
-// (no special rules are applied when extracting)
-func (te *Extractor) Sanitize(toggle bool) {
-	if toggle {
-		te.SanitizePathFunc = sanitizePath
-		te.LinkFunc = func(inLink Link) error {
-			if err := childrenOnly(inLink); err != nil {
-				return err
-			}
-			if err := platformLink(inLink); err != nil {
-				return err
-			}
-			return os.Symlink(inLink.Target, inLink.Name)
-		}
-	} else {
-		te.SanitizePathFunc = nil
-		te.LinkFunc = nil
-	}
-}
+// outputPath returns the path at whicht o place tarPath
+func (te *Extractor) outputPath(tarPath string) string {
+	elems := strings.Split(tarPath, "/") // break into elems
+	elems = elems[1:]                    // remove original root
 
-// outputPath returns the path at which to place tarPath
-func (te *Extractor) outputPath(tarPath string) (outPath string, err error) {
-	elems := strings.Split(tarPath, "/")    // break into elems
-	elems = elems[1:]                       // remove original root
-	outPath = strings.Join(elems, "/")      // join elems
-	outPath = gopath.Join(te.Path, outPath) // rebase on to extraction target root
-	// sanitize path to be platform legal
-	if te.SanitizePathFunc != nil {
-		outPath, err = te.SanitizePathFunc(outPath)
-	} else {
-		outPath = fp.FromSlash(outPath)
-	}
-	return
+	path := fp.Join(elems...)     // join elems
+	path = fp.Join(te.Path, path) // rebase on extractor root
+	return path
 }
 
 func (te *Extractor) extractDir(h *tar.Header, depth int) error {
-	path, err := te.outputPath(h.Name)
-	if err != nil {
-		return err
-	}
+	path := te.outputPath(h.Name)
 
 	if depth == 0 {
-		// if this is the root directory, use it as the output path for remaining files
+		// if this is the root root directory, use it as the output path for remaining files
 		te.Path = path
 	}
 
-	return os.MkdirAll(path, 0755)
-}
-
-func (te *Extractor) extractSymlink(h *tar.Header) error {
-	path, err := te.outputPath(h.Name)
+	err := os.MkdirAll(path, 0755)
 	if err != nil {
 		return err
 	}
 
-	if te.LinkFunc != nil {
-		return te.LinkFunc(Link{Root: te.Path, Name: h.Name, Target: h.Linkname})
-	}
-
-	return os.Symlink(h.Linkname, path)
+	return nil
 }
 
 func (te *Extractor) extractFile(h *tar.Header, r *tar.Reader, depth int, rootExists bool, rootIsDir bool) error {
-	path, err := te.outputPath(h.Name)
-	if err != nil {
-		return err
-	}
+	path := te.outputPath(h.Name)
 
-	if depth == 0 { // if depth is 0, this is the only file (we aren't extracting a directory)
+	if depth == 0 { // if depth is 0, this is the only file (we aren't 'ipfs get'ing a directory)
 		if rootExists && rootIsDir {
 			// putting file inside of a root dir.
 			fnameo := gopath.Base(h.Name)
@@ -168,49 +100,9 @@ func (te *Extractor) extractFile(h *tar.Header, r *tar.Reader, depth int, rootEx
 	}
 	defer file.Close()
 
-	return copyWithProgress(file, r, te.Progress)
-}
-
-func copyWithProgress(to io.Writer, from io.Reader, cb func(int64) int64) error {
-	buf := make([]byte, 4096)
-	for {
-		n, err := from.Read(buf)
-		if n != 0 {
-			if cb != nil {
-				cb(int64(n))
-			}
-			_, err2 := to.Write(buf[:n])
-			if err2 != nil {
-				return err2
-			}
-		}
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-	}
-}
-
-// childrenOnly will return an error if link targets escape their root
-func childrenOnly(inLink Link) error {
-	if fp.IsAbs(inLink.Target) {
-		return fmt.Errorf("Link target %q is an absolute path (forbidden)", inLink.Target)
-	}
-
-	resolvedTarget := fp.Join(inLink.Name, inLink.Target)
-	rel, err := fp.Rel(inLink.Root, resolvedTarget)
+	_, err = io.Copy(file, r)
 	if err != nil {
 		return err
-	}
-	//disallow symlinks from climbing out of the target root
-	if strings.HasPrefix(rel, "..") {
-		return fmt.Errorf("Symlink target %q escapes root %q", inLink.Target, inLink.Root)
-	}
-	//disallow pointing to your own root from above as well
-	if strings.HasPrefix(resolvedTarget, inLink.Root) {
-		return fmt.Errorf("Symlink target %q escapes and re-enters its own root %q (forbidden)", inLink.Target, inLink.Root)
 	}
 
 	return nil
