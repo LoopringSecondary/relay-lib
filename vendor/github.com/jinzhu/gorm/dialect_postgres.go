@@ -1,7 +1,6 @@
 package gorm
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -33,14 +32,14 @@ func (s *postgres) DataTypeOf(field *StructField) string {
 		case reflect.Bool:
 			sqlType = "boolean"
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uintptr:
-			if s.fieldCanAutoIncrement(field) {
+			if _, ok := field.TagSettings["AUTO_INCREMENT"]; ok || field.IsPrimaryKey {
 				field.TagSettings["AUTO_INCREMENT"] = "AUTO_INCREMENT"
 				sqlType = "serial"
 			} else {
 				sqlType = "integer"
 			}
 		case reflect.Int64, reflect.Uint32, reflect.Uint64:
-			if s.fieldCanAutoIncrement(field) {
+			if _, ok := field.TagSettings["AUTO_INCREMENT"]; ok || field.IsPrimaryKey {
 				field.TagSettings["AUTO_INCREMENT"] = "AUTO_INCREMENT"
 				sqlType = "bigserial"
 			} else {
@@ -69,13 +68,8 @@ func (s *postgres) DataTypeOf(field *StructField) string {
 		default:
 			if IsByteArrayOrSlice(dataValue) {
 				sqlType = "bytea"
-
 				if isUUID(dataValue) {
 					sqlType = "uuid"
-				}
-
-				if isJSON(dataValue) {
-					sqlType = "jsonb"
 				}
 			}
 		}
@@ -135,9 +129,4 @@ func isUUID(value reflect.Value) bool {
 	typename := value.Type().Name()
 	lower := strings.ToLower(typename)
 	return "uuid" == lower || "guid" == lower
-}
-
-func isJSON(value reflect.Value) bool {
-	_, ok := value.Interface().(json.RawMessage)
-	return ok
 }

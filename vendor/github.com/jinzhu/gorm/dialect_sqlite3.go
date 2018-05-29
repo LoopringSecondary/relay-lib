@@ -28,14 +28,14 @@ func (s *sqlite3) DataTypeOf(field *StructField) string {
 		case reflect.Bool:
 			sqlType = "bool"
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uintptr:
-			if s.fieldCanAutoIncrement(field) {
+			if field.IsPrimaryKey {
 				field.TagSettings["AUTO_INCREMENT"] = "AUTO_INCREMENT"
 				sqlType = "integer primary key autoincrement"
 			} else {
 				sqlType = "integer"
 			}
 		case reflect.Int64, reflect.Uint64:
-			if s.fieldCanAutoIncrement(field) {
+			if field.IsPrimaryKey {
 				field.TagSettings["AUTO_INCREMENT"] = "AUTO_INCREMENT"
 				sqlType = "integer primary key autoincrement"
 			} else {
