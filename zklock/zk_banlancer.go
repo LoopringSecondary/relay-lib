@@ -62,7 +62,7 @@ func (zb *ZkBalancer) OnAssign(assignFunc func (tasks []Task) error) {
 	assignFunc([]Task{})
 }
 
-func (zb *ZkBalancer) Released(task Task) error {
+func (zb *ZkBalancer) Released(tasks []Task) error {
 	return nil
 }
 
