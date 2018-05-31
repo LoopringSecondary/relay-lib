@@ -8,29 +8,22 @@ import (
 )
 
 type Task struct {
-	Path string
-	Payload  string
-	Weight   int
-	Status   string
-	Owner    string
-	NewOwner string
+	Payload  string //Native info for bussiness structs
+	Path string // friendly string for zk path composite, default is .substr(Payload, 0, 10)
+	Weight   int //bi
 }
 
-const (
-	normal = iota
-	changing
-	deleting
-)
 
 const balancerShareBasePath = "/loopring_balancer"
+const masterPath = "master"
 const workerPath = "worker"
-const taskPath = "task"
 
 type ZkBalancer struct {
 	Name string
 	WorkerPath string
-	TaskPath string
+	MasterPath string
 	Tasks []Task
+	IsMaster bool
 }
 
 func (zb *ZkBalancer) Init(tasks []Task) error {
@@ -47,7 +40,7 @@ func (zb *ZkBalancer) Init(tasks []Task) error {
 	if zb.WorkerPath, err = zb.createSubPath(workerPath); err != nil {
 		return err
 	}
-	if zb.TaskPath, err = zb.createSubPath(taskPath); err != nil {
+	if zb.MasterPath, err = zb.createSubPath(masterPath); err != nil {
 		return err
 	}
 	return nil
@@ -59,16 +52,14 @@ func (zb *ZkBalancer) Start() {
 }
 
 func (zb *ZkBalancer) Stop() {
-	ReleaseLock(zb.masterLockName())
+	if zb.IsMaster {
+		ReleaseLock(zb.masterLockName())
+	}
 	zb.unRegisterWorker()
 }
 
 func (zb *ZkBalancer) OnAssign(assignFunc func (tasks []Task) error) {
 	assignFunc([]Task{})
-}
-
-func (zb *ZkBalancer) OnRelease(needReleaseFunc func (tasks []Task) error) {
-	needReleaseFunc([]Task{})
 }
 
 func (zb *ZkBalancer) Released(task Task) error {
@@ -78,7 +69,7 @@ func (zb *ZkBalancer) Released(task Task) error {
 func (zb *ZkBalancer) startMaster() {
 	go func() {
 		TryLock(zb.masterLockName())
-		zb.validTasks()
+
 	}()
 }
 
@@ -122,7 +113,7 @@ func (zb *ZkBalancer) createSubPath(subPath string) (string, error) {
 }
 
 func (zb *ZkBalancer) masterLockName() string {
-	return fmt.Sprintf("balancer_%s", zb.Name)
+	return fmt.Sprintf("balancer/%s", zb.Name)
 }
 
 func (zb *ZkBalancer) workerEphemeral() string {
