@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Loopring/relay-lib/utils"
-	"github.com/Loopring/relay/log"
+	"github.com/Loopring/relay-lib/log"
 	"encoding/json"
 	"sync"
 	"time"
@@ -25,13 +25,14 @@ const workerPath = "worker"
 const eventPath = "event"
 
 type ZkBalancer struct {
-	Name           string
-	WorkerBasePath string
-	EventPath      string
-	Tasks          map[string]Task
-	IsMaster       bool
-	Mutex          sync.Mutex
-	OnAssignFunc   func([]Task) error
+	name           string
+	workerBasePath string
+	eEventBasePath string
+	tasks          map[string]Task
+	isMaster       bool
+	mutex          sync.Mutex
+	onAssignFunc   func([]Task) error
+	workerPath           string
 }
 
 type Status int
@@ -43,12 +44,14 @@ const (
 	Deleting
 )
 
-func (zb *ZkBalancer) Init(tasks []Task) error {
-	if zb.Name == "" {
+func (zb *ZkBalancer) Init(name string, tasks []Task, path ...string) error {
+	if name != ""{
+		zb.name = name
+	} else if zb.name == "" {
 		return fmt.Errorf("balancer Name is empty")
 	}
-	if len(zb.Tasks) == 0 {
-		zb.Tasks = make(map[string]Task)
+	if len(tasks) > 0 {
+		zb.tasks = make(map[string]Task)
 		for _, task := range tasks {
 			if task.Payload == "" {
 				return fmt.Errorf("task payload is empty")
@@ -61,20 +64,36 @@ func (zb *ZkBalancer) Init(tasks []Task) error {
 				}
 			}
 			task.Status = Init
-			zb.Tasks[task.Path] = task
+			zb.tasks[task.Path] = task
 		}
+	} else {
 		return fmt.Errorf("no tasks to balance")
 	}
-	if !IsInit() {
+	if !IsLockInitialed() {
 		return fmt.Errorf("zkClient is not intiliazed")
 	}
 	var err error
-	if zb.WorkerBasePath, err = zb.createSubPath(workerPath); err != nil {
-		return err
+	if _, err = zb.createPath(balancerShareBasePath); err != nil {
+		return fmt.Errorf("create balancer base path failed %s", balancerShareBasePath)
 	}
-	if zb.EventPath, err = zb.createSubPath(eventPath); err != nil {
-		return err
+	blp := fmt.Sprintf("%s/%s", balancerShareBasePath, zb.name)
+	if _, err = zb.createPath(blp); err != nil {
+		return fmt.Errorf("create balancer path for %s failed with error : %s", blp , err.Error())
 	}
+	wp := fmt.Sprintf("%s/%s", blp, workerPath)
+	if zb.workerBasePath, err = zb.createPath(wp); err != nil {
+		return fmt.Errorf("create balancer worker path for %s failed with error : %s", wp , err.Error())
+	}
+	ep := fmt.Sprintf("%s/%s", blp, eventPath)
+	if zb.eEventBasePath, err = zb.createPath(ep); err != nil {
+		return fmt.Errorf("create balancer event path for %s failed with error : %s", ep , err.Error())
+	}
+	if len(path) > 0 {
+		zb.workerPath = path[0]
+	} else {
+		zb.workerPath = utils.GetLocalIp()
+	}
+	zb.mutex = sync.Mutex{}
 	return nil
 }
 
@@ -85,7 +104,7 @@ func (zb *ZkBalancer) Start() {
 }
 
 func (zb *ZkBalancer) Stop() {
-	if zb.IsMaster {
+	if zb.isMaster {
 		ReleaseLock(zb.masterLockName())
 	}
 	zb.unRegisterWorker()
@@ -93,7 +112,7 @@ func (zb *ZkBalancer) Stop() {
 
 //worker callback
 func (zb *ZkBalancer) OnAssign(assignFunc func(tasks []Task) error) {
-	zb.OnAssignFunc = assignFunc
+	zb.onAssignFunc = assignFunc
 }
 
 func (zb *ZkBalancer) Released(tasks []Task) error {
@@ -104,7 +123,7 @@ func (zb *ZkBalancer) Released(tasks []Task) error {
 	if data, err := json.Marshal(tasks); err != nil {
 		return fmt.Errorf("marshal released tasks failed %s", err.Error())
 	} else {
-		if _, err := ZkClient.CreateProtectedEphemeralSequential(fmt.Sprintf("%s/released-", zb.EventPath), data, zk.WorldACL(zk.PermAll)); err != nil {
+		if _, err := ZkClient.CreateProtectedEphemeralSequential(fmt.Sprintf("%s/released-", zb.eEventBasePath), data, zk.WorldACL(zk.PermAll)); err != nil {
 			log.Errorf("released event node failed create with error : %s\n", err.Error())
 			return err
 		}
@@ -116,7 +135,7 @@ func (zb *ZkBalancer) startMaster() {
 	go func() {
 		firstTime := true
 		for {
-			zb.IsMaster = false
+			zb.isMaster = false
 			if !firstTime {
 				time.Sleep(time.Second * time.Duration(3))
 			} else {
@@ -125,9 +144,11 @@ func (zb *ZkBalancer) startMaster() {
 			if err := TryLock(zb.masterLockName()); err != nil {
 				log.Errorf("master failed get lock for %s, with error %s, try again\n", zb.masterLockName(), err.Error())
 				continue
+			} else {
+				log.Info("get master lock success")
 			}
-			zb.IsMaster = true
-			if workers, _, ch, err := ZkClient.ChildrenW(zb.WorkerBasePath); err != nil {
+			zb.isMaster = true
+			if workers, _, ch, err := ZkClient.ChildrenW(zb.workerBasePath); err == nil {
 				if err != nil {
 					log.Errorf("master get workers failed %s\n", err.Error())
 					ReleaseLock(zb.masterLockName())
@@ -148,7 +169,7 @@ func (zb *ZkBalancer) startMaster() {
 						select {
 						case evt := <-ch:
 							if evt.Type == zk.EventNodeChildrenChanged {
-								if children, _, chx, err := ZkClient.ChildrenW(zb.WorkerBasePath); err == nil {
+								if children, _, chx, err := ZkClient.ChildrenW(zb.workerBasePath); err == nil {
 									ch = chx
 									zb.balanceTasks(children)
 								}
@@ -156,7 +177,9 @@ func (zb *ZkBalancer) startMaster() {
 						}
 					}
 				}()
-				break
+				return
+			} else {
+				log.Errorf("master watch workers failed with error : %s", err.Error())
 			}
 		}
 	}()
@@ -172,7 +195,7 @@ func (zb *ZkBalancer) loadTasks(workers []string) error {
 }
 
 func (zb *ZkBalancer) loadTasksForWorker(worker string) error {
-	if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.WorkerBasePath, worker)); err != nil {
+	if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.workerBasePath, worker)); err != nil {
 		log.Errorf("loadTasksForWorker failed on get worker data for %s\n, with error : %s\n", worker, err.Error())
 		return err
 	} else {
@@ -181,14 +204,14 @@ func (zb *ZkBalancer) loadTasksForWorker(worker string) error {
 			return err
 		} else {
 			for _, wt := range workerTasks {
-				if v, ok := zb.Tasks[wt.Path]; ok {
+				if v, ok := zb.tasks[wt.Path]; ok {
 					v.Owner = worker
 					v.Status = Assigned
 					v.Timestamp = time.Now().Unix()
 				} else {
 					wt.Status = Deleting
 					wt.Timestamp = time.Now().Unix()
-					zb.Tasks[wt.Path] = wt
+					zb.tasks[wt.Path] = wt
 				}
 			}
 		}
@@ -199,7 +222,7 @@ func (zb *ZkBalancer) loadTasksForWorker(worker string) error {
 func (zb *ZkBalancer) deprecateTasks() error {
 	needDeleteWorker := make(map[string]string)
 	var err error = nil
-	for _, task := range zb.Tasks {
+	for _, task := range zb.tasks {
 		if task.Status == Deleting {
 			if _, ok := needDeleteWorker[task.Owner]; !ok {
 				needDeleteWorker[task.Owner] = "-"
@@ -213,8 +236,8 @@ func (zb *ZkBalancer) deprecateTasks() error {
 }
 
 func (zb *ZkBalancer) assignedTasks(worker string) error {
-	assignedTasks := make([]Task, 10)
-	for _, task := range zb.Tasks {
+	assignedTasks := make([]Task, 0, 10)
+	for _, task := range zb.tasks {
 		if task.Owner == worker && task.Status == Assigned {
 			assignedTasks = append(assignedTasks, task)
 		}
@@ -223,7 +246,7 @@ func (zb *ZkBalancer) assignedTasks(worker string) error {
 		log.Errorf("assignedTasks encode worker %s data failed, with error %s\n", worker, err.Error())
 		return err
 	} else {
-		if _, err := ZkClient.Set(fmt.Sprintf("%s/%s", zb.WorkerBasePath, worker), data,-1); err != nil {
+		if _, err := ZkClient.Set(fmt.Sprintf("%s/%s", zb.workerBasePath, worker), data,-1); err != nil {
 			log.Errorf("assignedTasks  set data for worker %s failed, with error %s\n", worker, err.Error())
 			return err
 		} else {
@@ -237,7 +260,7 @@ func (zb *ZkBalancer) registerWorker() error {
 		loaded := false
 		if _, err := ZkClient.Create(zb.workerEphemeralPath(), nil, zk.FlagEphemeral, zk.WorldACL(zk.PermAll)); err == nil || err == zk.ErrNodeExists {
 			if err == zk.ErrNodeExists && !loaded {
-				if err := zb.loadTasksForWorker(utils.GetLocalIp()); err != nil {
+				if err := zb.loadTasksForWorker(zb.workerPath); err != nil {
 					loaded = true
 				}
 			}
@@ -256,7 +279,7 @@ func (zb *ZkBalancer) registerWorker() error {
 								} else {
 									ch = chx
 									if workerTasks, err := decodeData(data); err != nil {
-										zb.OnAssignFunc(workerTasks)
+										zb.onAssignFunc(workerTasks)
 									}
 								}
 							}
@@ -272,7 +295,7 @@ func (zb *ZkBalancer) registerWorker() error {
 }
 
 func (zb *ZkBalancer) handleReleasedEvents() {
-	_, _, ch, err := ZkClient.ChildrenW(zb.EventPath)
+	_, _, ch, err := ZkClient.ChildrenW(zb.eEventBasePath)
 	if err != nil {
 		log.Errorf("Watch event children failed with error : %s\n", err.Error())
 	} else {
@@ -281,12 +304,12 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 				select {
 				case evt := <-ch:
 					if evt.Type == zk.EventNodeChildrenChanged {
-						if events, _, chx, err := ZkClient.ChildrenW(zb.EventPath); err == nil {
+						if events, _, chx, err := ZkClient.ChildrenW(zb.eEventBasePath); err == nil {
 							ch = chx
 							if len(events) > 0 {
 								releaseMap := make(map[string]Task)
 								for _, event := range events {
-									if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.EventPath, event)); err != nil {
+									if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.eEventBasePath, event)); err != nil {
 										log.Errorf("failed get event data from zk with error : %s\n", err.Error())
 									} else {
 										if releasedTasks, err:= decodeData(data); err == nil {
@@ -315,10 +338,10 @@ func (zb *ZkBalancer) unRegisterWorker() error {
 }
 
 func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
-	zb.Mutex.Lock()
+	zb.mutex.Lock()
 	hasInitTasks := false
-	for _, rlt, := range releasedTasks {
-		if origin, ok := zb.Tasks[rlt.Path]; ok {
+	for _, rlt := range releasedTasks {
+		if origin, ok := zb.tasks[rlt.Path]; ok {
 			switch origin.Status {
 			case Init:
 				log.Errorf("Try release task with status Init : %+v\n", origin)
@@ -327,7 +350,7 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 				log.Errorf("Try release task with status Assigned : %+v\n", origin)
 				break
 			case Deleting:
-				delete(zb.Tasks, origin.Path)
+				delete(zb.tasks, origin.Path)
 				break
 			case Releasing:
 				origin.Status = Init
@@ -338,9 +361,9 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 			log.Error("Try release task not exits, ignore\n")
 		}
 	}
-	zb.Mutex.Unlock()
+	zb.mutex.Unlock()
 	if hasInitTasks {
-		if workers, _, err := ZkClient.Children(zb.WorkerBasePath); err != nil {
+		if workers, _, err := ZkClient.Children(zb.workerBasePath); err != nil {
 			log.Errorf("innerOnReleased failed get workers from zk %s\n", err.Error())
 		} else {
 			zb.balanceTasks(workers)
@@ -349,10 +372,13 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 }
 
 func (zb *ZkBalancer) balanceTasks(workers []string) {
-	sortedTask := make([]Task, len(zb.Tasks))
-	for _, t := range zb.Tasks {
+	sortedTask := make([]Task, 0, len(zb.tasks))
+	for _, t := range zb.tasks {
 		if t.Status == Assigned || t.Status == Init {
 			sortedTask = append(sortedTask, t)
+		} else if t.Status == Releasing {
+			log.Info("task with releasing status, not rebalance\n")
+			return
 		}
 	}
 	if len(sortedTask) == 0 {
@@ -360,23 +386,38 @@ func (zb *ZkBalancer) balanceTasks(workers []string) {
 	}
 	sort.Sort(tasksForSort(sortedTask))
 	workersWeight := make(map[string]int)
+	newReleasingCount := 0
 	for i := 0; i < len(workers) && i < len(sortedTask); i++ {
 		workersWeight[workers[i]] = sortedTask[i].Weight
-		sortedTask[i].Owner = workers[i]
-		sortedTask[i].Status = Assigned
-		sortedTask[i].Timestamp = time.Now().Unix()
+		newReleasingCount += tryReAssignTask(sortedTask[i], workers[i])
 	}
 	if len(sortedTask) > len(workers) {
 		for i := len(workers); i < len(sortedTask); i++ {
 			minWorker := minWeightWorker(workersWeight)
-			sortedTask[i].Owner = minWorker
-			sortedTask[i].Status = Assigned
-			sortedTask[i].Timestamp = time.Now().Unix()
+			newReleasingCount += tryReAssignTask(sortedTask[i], minWorker)
 			workersWeight[minWorker] += workersWeight[minWorker] + sortedTask[i].Weight
 		}
 	}
-	for _, worker := range workers {
-		zb.assignedTasks(worker)
+	if newReleasingCount == 0 {
+		for _, worker := range workers {
+			zb.assignedTasks(worker)
+		}
+	}
+}
+
+func tryReAssignTask(task Task, newWorker string) int {
+	task.Timestamp = time.Now().Unix()
+	if task.Status == Assigned {
+		if task.Owner != newWorker {
+			task.Status = Releasing
+			return 1
+		} else {
+			return 0
+		}
+	} else {
+		task.Status = Assigned
+		task.Owner = newWorker
+		return 0
 	}
 }
 
@@ -392,27 +433,26 @@ func minWeightWorker(workerWeight map[string]int) string {
 	return minWorker
 }
 
-func (zb *ZkBalancer) createSubPath(subPath string) (string, error) {
-	subPathFull := fmt.Sprintf("%s/%s/%s", balancerShareBasePath, zb.Name, subPath)
-	isExist, _, err := ZkClient.Exists(subPathFull)
+func (zb *ZkBalancer) createPath(path string) (string, error) {
+	isExist, _, err := ZkClient.Exists(path)
 	if err != nil {
-		return "", fmt.Errorf("check zk path %s exists failed : %s", subPathFull, err.Error())
+		return "", fmt.Errorf("check zk path %s exists failed : %s", path, err.Error())
 	}
 	if !isExist {
-		_, err := ZkClient.Create(subPathFull, nil, 0, zk.WorldACL(zk.PermAll))
+		_, err := ZkClient.Create(path, nil, 0, zk.WorldACL(zk.PermAll))
 		if err != nil && err != zk.ErrNodeExists {
-			return "", fmt.Errorf("failed create balancer sub path %s", subPathFull)
+			return "", fmt.Errorf("failed create balancer sub path %s ,with error : %s ", path, err.Error())
 		}
 	}
-	return subPathFull, nil
+	return path, nil
 }
 
 func (zb *ZkBalancer) masterLockName() string {
-	return fmt.Sprintf("balancer/%s", zb.Name)
+	return fmt.Sprintf("balancer/%s", zb.name)
 }
 
 func (zb *ZkBalancer) workerEphemeralPath() string {
-	return fmt.Sprintf("%s/%s", zb.WorkerBasePath, utils.GetLocalIp())
+	return fmt.Sprintf("%s/%s", zb.workerBasePath, zb.workerPath)
 }
 
 func decodeData(data []byte) ([]Task, error) {
