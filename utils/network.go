@@ -21,7 +21,7 @@ func GetLocalIp() string {
 	return res
 }
 
-func GetLocalIpByInterface(name string) string {
+func GetLocalIpByPrefix(prefix string) string {
 	var res = "unknown"
 	interfaces, err := net.Interfaces()
 	if err != nil {
@@ -29,23 +29,20 @@ func GetLocalIpByInterface(name string) string {
 	}
 
 	for _, i := range interfaces {
-		if name == i.Name {
-			if addresses, err := i.Addrs(); err == nil {
-				for _, v := range addresses {
-					parts := strings.Split(v.String(), ":")
-					if len(parts) == 1 { //ipv6 address
-						return res
+		if addresses, err := i.Addrs(); err == nil {
+			for _, v := range addresses {
+				parts := strings.Split(v.String(), ":")
+				if len(parts) > 1 { //ipv6 address
+					continue
+				} else {
+					parts := strings.Split(v.String(), "/")
+					if len(parts) == 2 && strings.HasPrefix(parts[0], prefix) {
+						return parts[0]
 					} else {
-						parts := strings.Split(v.String(), "/")
-						if len(parts) == 2 {
-							return parts[0]
-						} else {
-							return res
-						}
+						continue
 					}
 				}
 			}
-			break
 		}
 	}
 	return res

@@ -24,7 +24,7 @@ const balancerShareBasePath = "/loopring_balancer"
 const workerPath = "worker"
 const eventPath = "event"
 
-const networkInterface = "eth0"
+const localIpPrefix = "172.31"
 
 type ZkBalancer struct {
 	name           string
@@ -93,7 +93,7 @@ func (zb *ZkBalancer) Init(name string, tasks []Task, path ...string) error {
 	if len(path) > 0 {
 		zb.workerPath = path[0]
 	} else {
-		zb.workerPath = utils.GetLocalIpByInterface(networkInterface)
+		zb.workerPath = utils.GetLocalIpByPrefix(localIpPrefix)
 	}
 	zb.mutex = sync.Mutex{}
 	return nil
@@ -459,6 +459,9 @@ func (zb *ZkBalancer) workerEphemeralPath() string {
 
 func decodeData(data []byte) ([]Task, error) {
 	releasedTasks := []Task{}
+	if len(data) == 0 {
+		return releasedTasks, nil
+	}
 	if err := json.Unmarshal(data, &releasedTasks); err != nil {
 		return nil, err
 	} else {
