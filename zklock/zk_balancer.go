@@ -24,6 +24,8 @@ const balancerShareBasePath = "/loopring_balancer"
 const workerPath = "worker"
 const eventPath = "event"
 
+const networkInterface = "eth0"
+
 type ZkBalancer struct {
 	name           string
 	workerBasePath string
@@ -91,7 +93,7 @@ func (zb *ZkBalancer) Init(name string, tasks []Task, path ...string) error {
 	if len(path) > 0 {
 		zb.workerPath = path[0]
 	} else {
-		zb.workerPath = utils.GetLocalIp()
+		zb.workerPath = utils.GetLocalIpByInterface(networkInterface)
 	}
 	zb.mutex = sync.Mutex{}
 	return nil
