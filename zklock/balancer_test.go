@@ -17,28 +17,25 @@ func TestProducer(t *testing.T) {
 	config.ConnectTimeOut = 2
 	zklock.Initialize(config)
 	runBalancer()
-	time.Sleep(time.Second*10*16)
 }
 
-
 func runBalancer() {
-	go func() {
-		balancer := zklock.ZkBalancer{}
-		if err := balancer.Init("test", buildTasks()); err != nil {
-			log.Errorf("init balancer failed : %s", err.Error())
-		}
-		var localTasks map[string]zklock.Task
-		var rmTasks []zklock.Task
-		balancer.OnAssign(func(newAssignedTasks []zklock.Task) error {
-			localTasks, rmTasks = splitTasks(localTasks, newAssignedTasks)
-			balancer.Released(rmTasks)
-			log.Infof("balancer %d release tasks $+v", rmTasks)
-			return nil
-		})
-		balancer.Start()
-		time.Sleep(time.Second * 10)
-		balancer.Stop()
-	}()
+	balancer := zklock.ZkBalancer{}
+	if err := balancer.Init("test", buildTasks()); err != nil {
+		log.Errorf("init balancer failed : %s", err.Error())
+	}
+	var localTasks map[string]zklock.Task
+	var rmTasks []zklock.Task
+	balancer.OnAssign(func(newAssignedTasks []zklock.Task) error {
+		localTasks, rmTasks = splitTasks(localTasks, newAssignedTasks)
+		balancer.Released(rmTasks)
+		log.Infof("balancer release tasks %+v", rmTasks)
+		log.Infof("balancer maintain tasks %+v", localTasks)
+		return nil
+	})
+	balancer.Start()
+	time.Sleep(time.Second * 300)
+	balancer.Stop()
 }
 
 func splitTasks(local map[string]zklock.Task, newAssigned []zklock.Task) (map[string]zklock.Task, []zklock.Task) {
@@ -66,12 +63,11 @@ func splitTasks(local map[string]zklock.Task, newAssigned []zklock.Task) (map[st
 func buildTasks() []zklock.Task {
 	res := make([]zklock.Task, 0, 10)
 	for i := 0; i < 10; i++ {
-		task := zklock.Task{Payload:fmt.Sprintf("payload-%d", i), Path:fmt.Sprintf("task%d", i), Weight:i, Status:zklock.Init, Owner:"", Timestamp:0}
+		task := zklock.Task{Payload: fmt.Sprintf("payload-%d", i), Path: fmt.Sprintf("task%d", i), Weight: i, Status: zklock.Init, Owner: "", Timestamp: 0}
 		res = append(res, task)
 	}
 	return res
 }
-
 
 func initLog() {
 	logConfig := `{
