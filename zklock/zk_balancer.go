@@ -113,6 +113,7 @@ func (zb *ZkBalancer) OnAssign(assignFunc func(tasks []Task) error) {
 	zb.onAssignFunc = assignFunc
 }
 
+//worker callback
 func (zb *ZkBalancer) Released(tasks []Task) error {
 	if len(tasks) == 0 {
 		log.Errorf("released tasks is empty\n")
@@ -170,6 +171,7 @@ func (zb *ZkBalancer) startMaster() {
 								log.Info("new worker registered")
 								if children, _, chx, err := ZkClient.ChildrenW(zb.workerBasePath); err == nil {
 									ch = chx
+									zb.releaseOrphanTasks(children)
 									zb.balanceTasks(children)
 								}
 							}
@@ -236,16 +238,16 @@ func (zb *ZkBalancer) deprecateTasks() error {
 }
 
 func (zb *ZkBalancer) assignedTasks(worker string) error {
-         log.Info("showTasks in assignedTasks")
-        zb.showTasks()
+        // log.Info("showTasks in assignedTasks")
+        //zb.showTasks()
 	assignedTasks := make([]*Task, 0, 10)
 	for _, task := range zb.tasks {
-                log.Infof("assignedTasks woker %s , task %+v", worker, *task)
+                //log.Infof("assignedTasks woker %s , task %+v", worker, *task)
 		if task.Owner == worker && task.Status == Assigned {
 			assignedTasks = append(assignedTasks, task)
 		}
 	}
-        log.Infof("assignedTasks for %s with tasks %+v", worker, assignedTasks)
+        //log.Infof("assignedTasks for %s with tasks %+v", worker, assignedTasks)
 	if data, err := encodeData(assignedTasks); err != nil {
 		log.Errorf("assignedTasks encode worker %s data failed, with error %s\n", worker, err.Error())
 		return err
@@ -254,7 +256,7 @@ func (zb *ZkBalancer) assignedTasks(worker string) error {
 			log.Errorf("assignedTasks  set data for worker %s failed, with error %s\n", worker, err.Error())
 			return err
 		} else {
-                        log.Infof("assignedTasks success with len(data) %d ", len(data))
+                        //log.Infof("assignedTasks success with len(data) %d ", len(data))
 			return nil
 		}
 	}
@@ -353,6 +355,16 @@ func (zb *ZkBalancer) unRegisterWorker() error {
 }
 
 func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
+	if zb.releaseTasks(releasedTasks) {
+		if workers, _, err := ZkClient.Children(zb.workerBasePath); err != nil {
+			log.Errorf("innerOnReleased failed get workers from zk %s\n", err.Error())
+		} else {
+			zb.balanceTasks(workers)
+		}
+	}
+}
+
+func (zb *ZkBalancer) releaseTasks(releasedTasks map[string]Task) bool {
 	zb.mutex.Lock()
 	hasInitTasks := false
 	for _, rlt := range releasedTasks {
@@ -377,12 +389,23 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 		}
 	}
 	zb.mutex.Unlock()
-	if hasInitTasks {
-		if workers, _, err := ZkClient.Children(zb.workerBasePath); err != nil {
-			log.Errorf("innerOnReleased failed get workers from zk %s\n", err.Error())
-		} else {
-			zb.balanceTasks(workers)
+	return hasInitTasks
+}
+
+
+func (zb *ZkBalancer) releaseOrphanTasks(workers []string) {
+	validWorkers := make(map[string]string, len(workers))
+	for _, v := range workers {
+		validWorkers[v] = "-"
+	}
+	orphanTasks := make(map[string]Task, len(zb.tasks))
+	for _, t := range zb.tasks {
+		if _, ok := validWorkers[t.Owner]; !ok {
+			orphanTasks[t.Owner] = *t
 		}
+	}
+	if len(orphanTasks) > 0 {
+		zb.releaseTasks(orphanTasks)
 	}
 }
 
