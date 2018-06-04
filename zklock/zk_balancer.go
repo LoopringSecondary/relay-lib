@@ -178,6 +178,7 @@ func (zb *ZkBalancer) startMaster() {
 					ReleaseLock(zb.masterLockName())
 					continue
 				}
+				log.Info("master watch worker nodes success !!!\n")
 				go func() {
 					for {
 						select {
@@ -334,6 +335,7 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 	if err != nil {
 		log.Errorf("Watch event children failed with error : %s\n", err.Error())
 	} else {
+		log.Info("master handleReleasedEvents success !!!\n")
 		go func() {
 			for {
 				select {
@@ -351,6 +353,8 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 											for _, v := range releasedTasks {
 												releaseMap[v.Path] = v
 											}
+										} else {
+											log.Errorf("decode data failed when handleReleasedEvents with error : %s", err.Error())
 										}
 									}
 								}
@@ -361,6 +365,8 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 									}
 								}
 							}
+						} else {
+							log.Errorf("get event nodes failed with error %s", err.Error())
 						}
 					}
 				}
@@ -372,7 +378,7 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 func (zb *ZkBalancer) scheduleShowTasks() {
 	go func() {
 		for {
-			time.Sleep(time.Second * time.Duration(180))
+			time.Sleep(time.Second * time.Duration(60))
 			log.Info("scheduleShowTasks every 3 minutes >>>>>>>>>> \n")
 			zb.showTasks()
 		}
@@ -388,6 +394,7 @@ func (zb *ZkBalancer) unRegisterWorker() error {
 }
 
 func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
+	log.Infof("innerOnReleased to release %+v\n", releasedTasks)
 	zb.mutex.Lock()
 	hasInitTasks := false
 	for _, rlt := range releasedTasks {
@@ -427,17 +434,18 @@ func (zb *ZkBalancer) releaseOrphanTasks(workers []string) {
 		validWorkers[v] = "-"
 	}
 	zb.mutex.Lock()
+	defer zb.mutex.Unlock()
 	for _, t := range zb.tasks {
 		if _, ok := validWorkers[t.Owner]; !ok {
 			t.Status = Init
 		}
 	}
-	zb.mutex.Unlock()
 }
 
 func (zb *ZkBalancer) balanceTasks(workers []string) {
 	log.Infof("balanceTasks workers %+v\n", workers)
 	zb.mutex.Lock()
+	defer zb.mutex.Unlock()
 	sortedTask := make([]*Task, 0, len(zb.tasks))
 	for _, t := range zb.tasks {
 		if t.Status == Assigned || t.Status == Init {
@@ -471,7 +479,6 @@ func (zb *ZkBalancer) balanceTasks(workers []string) {
 	for _, worker := range workers {
 		zb.assignedTasks(worker)
 	}
-	zb.mutex.Unlock()
 }
 
 func (zb *ZkBalancer) tryReAssignTask(t *Task, newWorker string) {

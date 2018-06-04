@@ -12,7 +12,7 @@ import (
 func main() {
 	initLog()
 	config := zklock.ZkLockConfig{}
-	config.ZkServers = "172.31.3.217:2181"
+	config.ZkServers = "zk_test:2181"
 	config.ConnectTimeOut = 2
 	zklock.Initialize(config)
 	runBalancer()
