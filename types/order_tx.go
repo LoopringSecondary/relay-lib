@@ -20,6 +20,7 @@ package types
 
 import "github.com/ethereum/go-ethereum/common"
 
+//go:generate gencodec -type OrderTxRecord -out gen_orderTxRecord_json.go
 type OrderTxRecord struct {
 	Owner       common.Address `json:"owner"`
 	TxHash      common.Hash    `json:"tx_hash"`
