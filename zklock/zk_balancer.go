@@ -41,7 +41,7 @@ type ZkBalancer struct {
 type Status int
 
 const (
-	Init = iota
+	Init      = iota
 	Assigned
 	Releasing
 	Deleting
@@ -389,14 +389,7 @@ func (zb *ZkBalancer) scheduleCheckTasks() {
 		for {
 			time.Sleep(time.Second * time.Duration(60))
 			log.Info("scheduleCheckTasks every minute >>>>>>>>>> \n")
-			if workers, _, err := ZkClient.Children(zb.workerBasePath); err == nil {
-				if len(workers) > 0 && zb.resetTimeoutRelease(workers) {
-					log.Infof("Found timeout releasing task, need reblance\n")
-					zb.balanceTasks(workers)
-				}
-			} else {
-				log.Errorf("scheduleCheckTasks get workers failed %s\n", err.Error())
-			}
+			zb.checkAndAssignReleaseTimeoutTasks()
 			zb.showTasks()
 		}
 	}()
@@ -405,7 +398,7 @@ func (zb *ZkBalancer) scheduleCheckTasks() {
 func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 	log.Infof("innerOnReleased to release %+v\n", releasedTasks)
 	zb.mutex.Lock()
-	hasInitTasks := false
+	needAssignedTasks := make([]Task, 0, len(releasedTasks))
 	for _, rlt := range releasedTasks {
 		if origin, ok := zb.tasks[rlt.Path]; ok {
 			switch origin.Status {
@@ -419,8 +412,9 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 				delete(zb.tasks, origin.Path)
 				break
 			case Releasing:
-				origin.Status = Init
-				hasInitTasks = true
+				origin.Status = Assigned
+				origin.Timestamp = time.Now().Unix()
+				needAssignedTasks = append(needAssignedTasks, *origin)
 				break
 			}
 		} else {
@@ -428,28 +422,20 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 		}
 	}
 	zb.mutex.Unlock()
-	if hasInitTasks {
-		if workers, _, err := ZkClient.Children(zb.workerBasePath); err != nil {
-			log.Errorf("innerOnReleased failed get workers from zk %s\n", err.Error())
-		} else {
-			zb.balanceTasks(workers)
-		}
+	if len(needAssignedTasks) > 0 {
+		zb.balanceTasksOnReleased(needAssignedTasks)
 	}
 }
 
-func (zb *ZkBalancer) resetTimeoutRelease(workers []string) bool {
-	hasNewInit := false
-	hasWaitReleasing := false
+func (zb *ZkBalancer) checkAndAssignReleaseTimeoutTasks() {
+	needAssignTasks := make([]Task, 0, len(zb.tasks)/2)
 	zb.mutex.Lock()
-	defer zb.mutex.Unlock()
 	for _, t := range zb.tasks {
 		if t.Status == Releasing {
 			if time.Now().Unix() - t.Timestamp >= releasingTimeout {
 				t.Timestamp = time.Now().Unix()
-				t.Status = Init
-				hasNewInit = true
-			} else {
-				hasWaitReleasing = true
+				t.Status = Assigned
+				needAssignTasks = append(needAssignTasks, *t)
 			}
 		} else if t.Status == Deleting {
 			if time.Now().Unix() - t.Timestamp >= releasingTimeout {
@@ -457,7 +443,10 @@ func (zb *ZkBalancer) resetTimeoutRelease(workers []string) bool {
 			}
 		}
 	}
-	return hasNewInit && !hasWaitReleasing
+	zb.mutex.Unlock()
+	if len(needAssignTasks) > 0 {
+		zb.balanceTasksOnReleased(needAssignTasks)
+	}
 }
 
 func (zb *ZkBalancer) releaseOrphanTasks(workers []string) bool {
@@ -513,6 +502,17 @@ func (zb *ZkBalancer) balanceTasks(workers []string) {
 	zb.showTasks()
 	for _, worker := range workers {
 		zb.assignedTasks(worker)
+	}
+}
+
+func (zb *ZkBalancer) balanceTasksOnReleased(tasksReleased []Task) {
+	log.Infof("balanceTasksOnReleased for %+v\n", tasksReleased)
+	needReAssignWorker := make(map[string]string)
+	for _, task := range tasksReleased {
+		if _, ok := needReAssignWorker[task.Owner]; !ok {
+			needReAssignWorker[task.Owner] = "-"
+			zb.assignedTasks(task.Owner)
+		}
 	}
 }
 
@@ -604,12 +604,12 @@ func decodeData(data []byte) ([]Task, error) {
 }
 
 func encodeData(tasks []*Task) ([]byte, error) {
-     if len(tasks) == 0 {
-        return []byte{}, nil
-     }
-     res := make([]Task, 0, len(tasks))
-     for _, v := range tasks {
-        res = append(res, *v)
-     }
-     return json.Marshal(res)
+	if len(tasks) == 0 {
+		return []byte{}, nil
+	}
+	res := make([]Task, 0, len(tasks))
+	for _, v := range tasks {
+		res = append(res, *v)
+	}
+	return json.Marshal(res)
 }
