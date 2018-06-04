@@ -1,13 +1,13 @@
 package zklock_test
 
 import (
-	"fmt"
-	"testing"
-	"github.com/Loopring/relay-lib/zklock"
-	"time"
-	"go.uber.org/zap"
 	"encoding/json"
+	"fmt"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/zklock"
+	"go.uber.org/zap"
+	"testing"
+	"time"
 )
 
 func TestProducer(t *testing.T) {

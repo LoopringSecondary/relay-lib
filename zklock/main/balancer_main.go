@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/Loopring/relay-lib/zklock"
-	"time"
-	"go.uber.org/zap"
 	"encoding/json"
+	"fmt"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/zklock"
+	"go.uber.org/zap"
+	"time"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 func runBalancer() {
 	balancer := zklock.ZkBalancer{}
-        log.Info("Before Init balancer")
+	log.Info("Before Init balancer")
 	if err := balancer.Init("test", buildTasks()); err != nil {
 		log.Errorf("init balancer failed : %s", err.Error())
 		return
