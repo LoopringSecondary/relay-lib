@@ -29,7 +29,7 @@ const localIpPrefix = "172.31"
 type ZkBalancer struct {
 	name           string
 	workerBasePath string
-	eEventBasePath string
+	eventBasePath  string
 	tasks          map[string]*Task
 	isMaster       bool
 	mutex          sync.Mutex
@@ -45,6 +45,8 @@ const (
 	Releasing
 	Deleting
 )
+
+//TODO check whether need load tasks schedule from zk to keep data consistency
 
 type tasksForSort []*Task
 
@@ -100,7 +102,7 @@ func (zb *ZkBalancer) Init(name string, initTasks []Task) error {
 		return fmt.Errorf("create balancer worker path for %s failed with error : %s", wp , err.Error())
 	}
 	ep := fmt.Sprintf("%s/%s", blp, event_path)
-	if zb.eEventBasePath, err = zb.createPath(ep); err != nil {
+	if zb.eventBasePath, err = zb.createPath(ep); err != nil {
 		return fmt.Errorf("create balancer event path for %s failed with error : %s", ep , err.Error())
 	}
 	zb.workerPath = utils.GetLocalIpByPrefix(localIpPrefix)
@@ -135,7 +137,7 @@ func (zb *ZkBalancer) Released(tasks []Task) error {
 	if data, err := json.Marshal(tasks); err != nil {
 		return fmt.Errorf("marshal released tasks failed %s", err.Error())
 	} else {
-		if _, err := ZkClient.CreateProtectedEphemeralSequential(fmt.Sprintf("%s/released-", zb.eEventBasePath), data, zk.WorldACL(zk.PermAll)); err != nil {
+		if _, err := ZkClient.CreateProtectedEphemeralSequential(fmt.Sprintf("%s/released-", zb.eventBasePath), data, zk.WorldACL(zk.PermAll)); err != nil {
 			log.Errorf("released event node failed create with error : %s\n", err.Error())
 			return err
 		}
@@ -182,10 +184,10 @@ func (zb *ZkBalancer) startMaster() {
 						case evt := <-ch:
 							if evt.Type == zk.EventNodeChildrenChanged {
 								log.Info("worker nodes changed !!!!!")
-								if children, _, chx, err := ZkClient.ChildrenW(zb.workerBasePath); err == nil {
+								if workers, _, chx, err := ZkClient.ChildrenW(zb.workerBasePath); err == nil {
 									ch = chx
-									zb.releaseOrphanTasks(children)
-									zb.balanceTasks(children)
+									zb.releaseOrphanTasks(workers)
+									zb.balanceTasks(workers)
 								}
 							}
 						}
@@ -328,7 +330,7 @@ func (zb *ZkBalancer) assignedTasks(worker string) error {
 }
 
 func (zb *ZkBalancer) handleReleasedEvents() {
-	_, _, ch, err := ZkClient.ChildrenW(zb.eEventBasePath)
+	_, _, ch, err := ZkClient.ChildrenW(zb.eventBasePath)
 	if err != nil {
 		log.Errorf("Watch event children failed with error : %s\n", err.Error())
 	} else {
@@ -337,12 +339,12 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 				select {
 				case evt := <-ch:
 					if evt.Type == zk.EventNodeChildrenChanged {
-						if events, _, chx, err := ZkClient.ChildrenW(zb.eEventBasePath); err == nil {
+						if events, _, chx, err := ZkClient.ChildrenW(zb.eventBasePath); err == nil {
 							ch = chx
 							if len(events) > 0 {
 								releaseMap := make(map[string]Task)
 								for _, event := range events {
-									if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.eEventBasePath, event)); err != nil {
+									if data, _, err := ZkClient.Get(fmt.Sprintf("%s/%s", zb.eventBasePath, event)); err != nil {
 										log.Errorf("failed get event data from zk with error : %s\n", err.Error())
 									} else {
 										if releasedTasks, err:= decodeData(data); err == nil {
@@ -354,7 +356,7 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 								}
 								zb.innerOnReleased(releaseMap)
 								for _, event := range events {
-									if err := ZkClient.Delete(fmt.Sprintf("%s/%s", zb.eEventBasePath, event), -1); err != nil {
+									if err := ZkClient.Delete(fmt.Sprintf("%s/%s", zb.eventBasePath, event), -1); err != nil {
 										log.Errorf("failed delete event node %s with error : %s\n", event, err.Error())
 									}
 								}
