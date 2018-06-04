@@ -20,7 +20,7 @@ package types
 
 import "github.com/ethereum/go-ethereum/common"
 
-type OrderRelatedPendingTx struct {
+type OrderTxRecord struct {
 	Owner       common.Address `json:"owner"`
 	TxHash      common.Hash    `json:"tx_hash"`
 	OrderHash   common.Hash    `json:"order_hash"`
