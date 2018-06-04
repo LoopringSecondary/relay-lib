@@ -25,6 +25,7 @@ const worker_path = "worker"
 const event_path = "event"
 
 const localIpPrefix = "172.31"
+const releasingTimeout = 120
 
 type ZkBalancer struct {
 	name           string
@@ -178,15 +179,6 @@ func (zb *ZkBalancer) startMaster() {
 					ReleaseLock(zb.masterLockName())
 					continue
 				}
-				//release orphan tasks when new master start, to handle follow cases:
-				// 1: original master exit ungraceful, which cause worker node change event not handled
-				// 2: worker release task not quickly enough
-				// the best implementation is store all tasks to zookeeper, will may be too complicate
-				if zb.releaseOrphanTasks(workers) {
-					log.Warnf("get orphan tasks when start master, wait 5 seconds to ensure these tasks are released successfully................\n")
-					time.Sleep(time.Second * time.Duration(5))
-					zb.balanceTasks(workers)
-				}
 				log.Info("master watch worker nodes success !!!\n")
 				go func() {
 					for {
@@ -204,7 +196,7 @@ func (zb *ZkBalancer) startMaster() {
 					}
 				}()
 				zb.handleReleasedEvents()
-				zb.scheduleShowTasks()
+				zb.scheduleCheckTasks()
 				return
 			} else {
 				log.Errorf("master watch workers failed with error : %s\n", err.Error())
@@ -392,11 +384,19 @@ func (zb *ZkBalancer) handleReleasedEvents() {
 	}
 }
 
-func (zb *ZkBalancer) scheduleShowTasks() {
+func (zb *ZkBalancer) scheduleCheckTasks() {
 	go func() {
 		for {
 			time.Sleep(time.Second * time.Duration(60))
-			log.Info("scheduleShowTasks every 3 minutes >>>>>>>>>> \n")
+			log.Info("scheduleCheckTasks every minute >>>>>>>>>> \n")
+			if workers, _, err := ZkClient.Children(zb.workerBasePath); err == nil {
+				if len(workers) > 0 && zb.resetTimeoutRelease(workers) {
+					log.Infof("Found timeout releasing task, need reblance\n")
+					zb.balanceTasks(workers)
+				}
+			} else {
+				log.Errorf("scheduleCheckTasks get workers failed %s\n", err.Error())
+			}
 			zb.showTasks()
 		}
 	}()
@@ -435,6 +435,29 @@ func (zb *ZkBalancer) innerOnReleased(releasedTasks map[string]Task) {
 			zb.balanceTasks(workers)
 		}
 	}
+}
+
+func (zb *ZkBalancer) resetTimeoutRelease(workers []string) bool {
+	hasNewInit := false
+	hasWaitReleasing := false
+	zb.mutex.Lock()
+	defer zb.mutex.Unlock()
+	for _, t := range zb.tasks {
+		if t.Status == Releasing {
+			if time.Now().Unix() - t.Timestamp >= releasingTimeout {
+				t.Timestamp = time.Now().Unix()
+				t.Status = Init
+				hasNewInit = true
+			} else {
+				hasWaitReleasing = true
+			}
+		} else if t.Status == Deleting {
+			if time.Now().Unix() - t.Timestamp >= releasingTimeout {
+				delete(zb.tasks, t.Path)
+			}
+		}
+	}
+	return hasNewInit && !hasWaitReleasing
 }
 
 func (zb *ZkBalancer) releaseOrphanTasks(workers []string) bool {
