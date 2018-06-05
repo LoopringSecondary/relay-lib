@@ -137,9 +137,11 @@ func (zb *ZkBalancer) Start() {
 }
 
 func (zb *ZkBalancer) Stop() {
+	zb.mutex.Lock()
 	if zb.isMaster {
 		ReleaseLock(zb.masterLockName())
 	}
+	zb.mutex.Unlock()
 	zb.unRegisterWorker()
 }
 
@@ -171,7 +173,9 @@ func (zb *ZkBalancer) startMaster() {
 	go func() {
 		firstTime := true
 		for {
+			zb.mutex.Lock()
 			zb.isMaster = false
+			zb.mutex.Unlock()
 			if !firstTime {
 				time.Sleep(time.Second * time.Duration(3))
 			} else {
