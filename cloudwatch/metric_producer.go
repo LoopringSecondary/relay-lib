@@ -13,11 +13,11 @@ import (
 
 const region = "ap-northeast-1"
 const namespace = "LoopringDefine"
-const obsoleteCountThreshold = 1000
+const obsoleteCountThreshold = 200
 const obsoleteTimeoutSeconds = 4
-const batchDatumBufferSize = 2000
+const batchDatumBufferSize = 400
 const batchTimeoutSeconds = 2
-const batchSendSize = 500
+const batchSendSize = 20 //aws only allow not more than 20 items in one request, request size should less than 40960
 
 var cwc *cloudwatch.CloudWatch
 var inChan chan<- interface{}
@@ -25,8 +25,12 @@ var outChan <-chan interface{}
 
 /*
  need following config files for aws service connect
-	~/.aws/config/config
 	~/.aws/config/credentials
+
+two ways to specify this config
+1. export variable on start at /etc/server/xxx/run, when use daemontools
+export AWS_SHARED_CREDENTIALS_FILE=/home/ubuntu/.aws/credentials
+2. local run as current user, then will default use this credentials file base in home dir
 */
 
 func Initialize() error {
@@ -92,7 +96,8 @@ func IsValid() bool {
 
 func PutResponseTimeMetric(methodName string, costTime float64) error {
 	if !IsValid() {
-		return fmt.Errorf("Cloudwatch client has not initialized\n")
+		log.Error("cloud watch client has not initialized\n")
+		return fmt.Errorf("cloud watch client has not initialized")
 	}
 	dt := &cloudwatch.MetricDatum{}
 	metricName := fmt.Sprintf("response_%s", methodName)
@@ -108,7 +113,8 @@ func PutResponseTimeMetric(methodName string, costTime float64) error {
 
 func PutHeartBeatMetric(metricName string) error {
 	if !IsValid() {
-		return fmt.Errorf("Cloudwatch client has not initialized\n")
+		log.Error("cloud watch client has not initialized\n")
+		return fmt.Errorf("cloud watch client has not initialized")
 	}
 	dt := &cloudwatch.MetricDatum{}
 	dt.MetricName = &metricName
@@ -147,7 +153,7 @@ func cloneDatum(datum *cloudwatch.MetricDatum) *cloudwatch.MetricDatum {
 }
 
 func batchSendMetricData(datums []*cloudwatch.MetricDatum) {
-	//fmt.Printf("batchSendMetricData %s send datums size %d\n", time.Now().Format(time.RFC3339), len(datums))
+	//log.Infof("batchSendMetricData %s send datums size %d\n", time.Now().Format(time.RFC3339), len(datums))
 	for i := 0; ; i++ {
 		if i*batchSendSize >= len(datums) {
 			return
@@ -160,13 +166,15 @@ func batchSendMetricData(datums []*cloudwatch.MetricDatum) {
 		input.MetricData = datums[i*batchSendSize : endIndex]
 		input.Namespace = namespaceNormal()
 		go func() {
-			cwc.PutMetricData(input)
+			if _, err := cwc.PutMetricData(input); err != nil {
+				log.Errorf("cwc.PutMetricData failed with error : %s\n", err.Error())
+			}
 		}()
 	}
 }
 
 func checkObsolete(datum *cloudwatch.MetricDatum) bool {
-	//fmt.Printf("checkObsolete : %d %d %d \n", time.Now().UnixNano(), datum.Timestamp.UnixNano(), time.Now().UnixNano() - datum.Timestamp.UnixNano())
+	//log.Infof("checkObsolete : %d %d %d \n", time.Now().UnixNano(), datum.Timestamp.UnixNano(), time.Now().UnixNano() - datum.Timestamp.UnixNano())
 	return time.Now().UnixNano()-datum.Timestamp.UnixNano() > 1000*1000*1000*obsoleteTimeoutSeconds
 }
 
