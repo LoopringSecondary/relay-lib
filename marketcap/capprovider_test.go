@@ -44,7 +44,7 @@ func init() {
 	    "messageKey": "message",
 	    "levelKey": "level",
 	    "levelEncoder": "lowercase",
-	    "encodeTime": "iso8601",
+	    "encodeTime": "iso8601"
 	  }
 	}`
 	rawJSON := []byte(logConfig)
