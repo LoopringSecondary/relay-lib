@@ -232,7 +232,7 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 		if estimagetGas, _, err := EstimateGas(callData, to, "latest"); nil != err {
 			return txHash, nil, err
 		} else {
-			if nil == gas || gas.Cmp(big.NewInt(1000000)) < 0 {
+			if nil == gas || gas.Cmp(big.NewInt(2000)) < 0 {
 				gas = estimagetGas
 			}
 		}
