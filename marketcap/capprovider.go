@@ -28,11 +28,6 @@ import (
 
 type LegalCurrency int
 
-const (
-	CACHEKEY_COIN_MARKETCAP  = "coin_marketcap_"
-	ZKNAME_COIN_MARKETCAP    = "coin_marketcap_"
-	HEARTBEAT_COIN_MARKETCAP = "coin_marketcap"
-)
 
 func StringToLegalCurrency(currency string) LegalCurrency {
 	currency = strings.ToUpper(currency)
