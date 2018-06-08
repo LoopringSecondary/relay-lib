@@ -61,7 +61,7 @@ func init() {
 	cache.NewCache(redis.RedisOptions{Host: "127.0.0.1", Port: "6379"})
 
 	options := marketutil.MarketOptions{}
-	options.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/relay/config/tokens.json"
+	options.TokenFile = "/Users/yuhongyu/Desktop/service/go/src/github.com/Loopring/miner/config/tokens.json"
 	marketutil.Initialize(&options)
 
 	zkconfig := zklock.ZkLockConfig{}
@@ -72,15 +72,16 @@ func init() {
 
 func TestCapProvider_CoinMarketCap_Start(t *testing.T) {
 	options := marketcap.MarketCapOptions{}
-	options.BaseUrl = "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s"
+	options.BaseUrl = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
 	options.Duration = 5
 	options.Currency = "USD"
 	options.IsSync = false
+	options.DustValue = new(big.Rat).SetFloat64(float64(1.0))
 	provider := marketcap.NewMarketCapProvider(&options)
 	provider.Start()
 	a := new(big.Rat)
 	a.SetString("2806326640744990")
-	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0xBeB6fdF4ef6CEb975157be43cBE0047B248a8922"), a, "USD")
+	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0x4d46AeA373Ea6a6EC6cBBF7f00724A6F61899C27"), a, "USD")
 	if nil != err {
 		t.Errorf(err.Error())
 	} else {

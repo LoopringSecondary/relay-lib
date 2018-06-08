@@ -35,7 +35,6 @@ import (
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"net/http"
-	"strconv"
 )
 
 
@@ -56,65 +55,61 @@ type MarketCap struct {
 
 func (cap *MarketCap) UnmarshalJSON(input []byte) error {
 	type Cap struct {
-		Price     string `json:"price"`
-		Volume24H string `json:"24h_volume"`
-		MarketCap string `json:"market_cap"`
-		PercentChange1H string `json:"percent_change_1h"`
-		PercentChange24H string `json:"percent_change_24h"`
-		PercentChange7D string `json:"percent_change_7d"`
+		Price     float64 `json:"price"`
+		Volume24H float64 `json:"24h_volume"`
+		MarketCap float64 `json:"market_cap"`
+		PercentChange1H float64 `json:"percent_change_1h"`
+		PercentChange24H float64 `json:"percent_change_24h"`
+		PercentChange7D float64 `json:"percent_change_7d"`
 	}
 	c := &Cap{}
 	if err := json.Unmarshal(input, c); nil != err {
 		return err
 	} else {
-		if price, err1 := strconv.ParseFloat(c.Price, 10); nil != err1 {
-			return err1
-		} else {
-			cap.Price = new(big.Rat).SetFloat64(price)
-		}
-		if volume, err1 := strconv.ParseFloat(c.Volume24H, 10); nil != err1 {
-			return err1
-		} else {
-			cap.Volume24H = new(big.Rat).SetFloat64(volume)
-		}
-		if marketCap, err1 := strconv.ParseFloat(c.MarketCap, 10); nil != err1 {
-			return err1
-		} else {
-			cap.MarketCap = new(big.Rat).SetFloat64(marketCap)
-		}
-		if change1H, err1 := strconv.ParseFloat(c.PercentChange1H, 10); nil != err1 {
-			return err1
-		} else {
-			cap.PercentChange1H = new(big.Rat).SetFloat64(change1H)
-		}
-		if change24H, err1 := strconv.ParseFloat(c.PercentChange24H, 10); nil != err1 {
-			return err1
-		} else {
-			cap.PercentChange24H = new(big.Rat).SetFloat64(change24H)
-		}
-		if change7D, err1 := strconv.ParseFloat(c.PercentChange7D, 10); nil != err1 {
-			return err1
-		} else {
-			cap.PercentChange7D = new(big.Rat).SetFloat64(change7D)
-		}
+
+		cap.Price = new(big.Rat).SetFloat64(c.Price)
+		cap.Volume24H = new(big.Rat).SetFloat64(c.Volume24H)
+		cap.MarketCap = new(big.Rat).SetFloat64(c.MarketCap)
+		cap.PercentChange1H = new(big.Rat).SetFloat64(c.PercentChange1H)
+		cap.PercentChange24H = new(big.Rat).SetFloat64(c.PercentChange24H)
+		cap.PercentChange7D = new(big.Rat).SetFloat64(c.PercentChange7D)
 	}
 	return nil
 }
+func (cap *MarketCap) MarshalJSON() ([]byte, error) {
+	type Cap struct {
+		Price     float64 `json:"price"`
+		Volume24H float64 `json:"24h_volume"`
+		MarketCap float64 `json:"market_cap"`
+		PercentChange1H float64 `json:"percent_change_1h"`
+		PercentChange24H float64 `json:"percent_change_24h"`
+		PercentChange7D float64 `json:"percent_change_7d"`
+	}
+	c := &Cap{}
+	c.Price,_ = cap.Price.Float64()
+	c.Volume24H,_ = cap.Volume24H.Float64()
+	c.MarketCap,_ = cap.MarketCap.Float64()
+	c.PercentChange1H,_ = cap.PercentChange1H.Float64()
+	c.PercentChange24H,_ = cap.PercentChange24H.Float64()
+	c.PercentChange7D,_ = cap.PercentChange7D.Float64()
+	return json.Marshal(c)
+}
 
 type CoinMarketCap struct {
-	Id int `json:"id"`
-	Address      common.Address `json:"address"`
-	Name string `json:"name"`
-	Symbol string `json:"name"`
-	WebsiteSlug string `json:"website_slug"`
-	Rand int `json:"rank"`
+	Id                int `json:"id"`
+	Address           common.Address `json:"address"`
+	Name              string `json:"name"`
+	Symbol            string `json:"name"`
+	WebsiteSlug       string `json:"website_slug"`
+	Rank              int `json:"rank"`
 	CirculatingSupply float64 `json:"circulating_supply"`
-	TotalSupply float64 `json:"total_supply"`
-	MaxSupply float64 `json:"max_supply"`
-	Quotes map[string]*MarketCap `json:"quotes"`
-	LastUpdated int64 `json:"last_updated"`
-	Decimals     *big.Int
+	TotalSupply       float64 `json:"total_supply"`
+	MaxSupply         float64 `json:"max_supply"`
+	Quotes            map[string]*MarketCap `json:"quotes"`
+	LastUpdated       int64 `json:"last_updated"`
+	Decimals          *big.Int
 }
+
 type CoinMarketCapResult struct {
 	Data map[string]CoinMarketCap `json:"data"`
 	Metadata struct{
@@ -127,7 +122,8 @@ type CoinMarketCapResult struct {
 type CapProvider_CoinMarketCap struct {
 	baseUrl         string
 	tokenMarketCaps map[common.Address]*CoinMarketCap
-	idToAddress     map[string]common.Address
+	notSupportTokens []common.Address
+	slugToAddress   map[string]common.Address
 	currency        string
 	duration        int
 	dustValue       *big.Rat
@@ -165,20 +161,10 @@ func (p *CapProvider_CoinMarketCap) GetEthCap() (*big.Rat, error) {
 }
 
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
-	currency := StringToLegalCurrency(currencyStr)
 	if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
 		var v *big.Rat
-		switch currency {
-		case CNY:
-			v = c.PriceCny
-		case USD:
-			v = c.PriceUsd
-		case BTC:
-			v = c.PriceBtc
-		}
-		if "VITE" == c.Symbol || "ARP" == c.Symbol {
-			wethCap, _ := p.GetMarketCapByCurrency(util.AllTokens["WETH"].Protocol, currencyStr)
-			v = wethCap.Mul(wethCap, util.AllTokens[c.Symbol].IcoPrice)
+		if cap1,exists := c.Quotes[currencyStr]; exists {
+			v = cap1.Price
 		}
 		if v == nil {
 			return nil, errors.New("tokenCap is nil")
@@ -229,8 +215,8 @@ func (p *CapProvider_CoinMarketCap) zklockName() string {
 	return ZKNAME_COIN_MARKETCAP + p.currency
 }
 
-func (p *CapProvider_CoinMarketCap) cacheKey(addr common.Address) string {
-	return CACHEKEY_COIN_MARKETCAP + strings.ToLower(addr.Hex())
+func (p *CapProvider_CoinMarketCap) cacheKey(websiteSlug string) string {
+	return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug)
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
@@ -267,12 +253,13 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 	numCryptocurrencies := 105
 	start := 0
 	limit := 100
-	for numCryptocurrencies > start * limit {
+	for numCryptocurrencies > 0 {
 		url := fmt.Sprintf(p.baseUrl, p.currency, start, limit)
+		println(url)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Errorf("err:%s", err.Error())
-			return []byte{}, err
+			return err
 		}
 		defer func() {
 			if nil != resp && nil != resp.Body {
@@ -287,7 +274,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 		} else {
 			result := &CoinMarketCapResult{}
 			if err1 := json.Unmarshal(body, result); nil != err1 {
-				log.Errorf("err:%s", err1.Error())
+				log.Errorf("err1:%s", err1.Error())
 				return err1
 			} else {
 
@@ -297,80 +284,88 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 							log.Errorf("err:%s", err2.Error())
 							return err2
 						} else {
-							err = cache.Set(p.cacheKey(cap1.Address), data, int64(0))
+							err = cache.Set(p.cacheKey(cap1.WebsiteSlug), data, int64(43200))
 							if nil != err {
 								log.Errorf("err:%s", err.Error())
 								return err
 							}
 						}
 					}
-					numCryptocurrencies = result.Metadata.NumCryptocurrencies - (start * limit)
-					start = start + 1
+					start = start + len(result.Data)
+					numCryptocurrencies = result.Metadata.NumCryptocurrencies - start
 				} else {
 					log.Errorf("err:%s", result.Metadata.Error)
 				}
 			}
 		}
-		return err
+
 	}
+
 	return nil
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	//todo:use zk to keep
-	tokenMarketCaps := make(map[common.Address]*CoinMarketCap)
-	for addr,c1 := range p.tokenMarketCaps {
-		data,err := cache.Get(p.cacheKey(addr))
-		if nil != err {
-			p.syncMarketCapFromAPI()
-			data,err = cache.Get(p.cacheKey(addr))
-			if nil != err {
-				return err
-			} else {
-				c := &CoinMarketCap{}
-				if err := json.Unmarshal(data, c); nil != err {
-					log.Errorf("err:%s", err.Error())
-				} else {
-					tokenMarketCaps[addr] = c
-				}
+	//tokenMarketCaps := make(map[common.Address]*CoinMarketCap)
+	syncedFromApi := false
+
+	for tokenAddr,c1 := range p.tokenMarketCaps {
+		notSupportToken := false
+		for _,addr := range p.notSupportTokens {
+			if addr == tokenAddr {
+				notSupportToken = true
 			}
 		}
-	}
-	p.tokenMarketCaps = tokenMarketCaps
-	body, err := cache.Get(p.cacheKey())
-	if nil != err {
-		err = p.syncMarketCapFromAPI()
+		if notSupportToken {
+			continue
+		}
+		data,err := cache.Get(p.cacheKey(c1.WebsiteSlug))
+		if nil != err && !syncedFromApi {
+			if err1 := p.syncMarketCapFromAPI(); nil != err1 {
+				return err1
+			}
+			syncedFromApi = true
+			data,err = cache.Get(p.cacheKey(c1.WebsiteSlug))
+		}
+		if nil != err {
+			log.Errorf("can't get marketcap of token:%s", tokenAddr.Hex())
+		} else {
+			c := &CoinMarketCap{}
+			println(tokenAddr.Hex(), string(data))
+			if err := json.Unmarshal(data, c); nil != err {
+				log.Errorf("get marketcap of token err:%s", err.Error())
+			} else {
+				p.tokenMarketCaps[tokenAddr].Quotes = c.Quotes
+				p.tokenMarketCaps[tokenAddr].CirculatingSupply = c.CirculatingSupply
+				p.tokenMarketCaps[tokenAddr].Rank = c.Rank
+				p.tokenMarketCaps[tokenAddr].TotalSupply = c.TotalSupply
+				p.tokenMarketCaps[tokenAddr].MaxSupply = c.MaxSupply
+				p.tokenMarketCaps[tokenAddr].LastUpdated = c.LastUpdated
+			}
+		}
 	}
 
-	if nil != err {
-		return err
-	} else {
-		var caps []*CoinMarketCap
-		if err := json.Unmarshal(body, &caps); nil != err {
-			return err
-		} else {
-			syncedTokens := make(map[common.Address]bool)
-			for _, tokenCap := range caps {
-				if tokenAddress, exists := p.idToAddress[strings.ToUpper(tokenCap.Id)]; exists {
-					p.tokenMarketCaps[tokenAddress].PriceUsd = tokenCap.PriceUsd
-					p.tokenMarketCaps[tokenAddress].PriceBtc = tokenCap.PriceBtc
-					p.tokenMarketCaps[tokenAddress].PriceCny = tokenCap.PriceCny
-					p.tokenMarketCaps[tokenAddress].Volume24HCNY = tokenCap.Volume24HCNY
-					p.tokenMarketCaps[tokenAddress].Volume24HUSD = tokenCap.Volume24HUSD
-					p.tokenMarketCaps[tokenAddress].LastUpdated = tokenCap.LastUpdated
-					log.Debugf("token:%s, priceUsd:%s", tokenAddress.Hex(), tokenCap.PriceUsd.FloatString(2))
-					syncedTokens[p.tokenMarketCaps[tokenAddress].Address] = true
+	wethAddress := util.AllTokens["WETH"].Protocol
+
+	for currency,wethCap := range p.tokenMarketCaps[wethAddress].Quotes {
+		for _, tokenAddr := range p.notSupportTokens {
+			if c,exists := p.tokenMarketCaps[tokenAddr]; exists {
+				if nil == c.Quotes {
+					c.Quotes = make(map[string]*MarketCap)
 				}
-			}
-			for _, tokenCap := range p.tokenMarketCaps {
-				if _, exists := syncedTokens[tokenCap.Address]; !exists && "VITE" != tokenCap.Symbol && "ARP" != tokenCap.Symbol {
-					//todo:
-					log.Errorf("token:%s, id:%s, can't sync marketcap at time:%d, it't last updated time:%d", tokenCap.Symbol, tokenCap.Id, time.Now().Unix(), tokenCap.LastUpdated)
+				if _,exists := c.Quotes[currency]; !exists {
+					c.Quotes[currency] = &MarketCap{}
 				}
+				c.Quotes[currency].Price = new(big.Rat).Mul(wethCap.Price, util.AllTokens[c.Symbol].IcoPrice)
 			}
 		}
 	}
+
 	return nil
+}
+
+func (p *CapProvider_CoinMarketCap) icoPriceTokens() []common.Address {
+	return []common.Address{}
 }
 
 type MarketCapOptions struct {
@@ -386,7 +381,8 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	provider.baseUrl = options.BaseUrl
 	provider.currency = options.Currency
 	provider.tokenMarketCaps = make(map[common.Address]*CoinMarketCap)
-	provider.idToAddress = make(map[string]common.Address)
+	provider.notSupportTokens = provider.icoPriceTokens()
+	provider.slugToAddress = make(map[string]common.Address)
 	provider.duration = options.Duration
 	provider.dustValue = options.DustValue
 	if provider.duration <= 0 {
@@ -401,24 +397,32 @@ func NewMarketCapProvider(options *MarketCapOptions) *CapProvider_CoinMarketCap 
 	}
 
 	for _, v := range util.AllTokens {
-		if "ARP" == v.Symbol || "VITE" == v.Symbol {
-			c := &CoinMarketCap{}
-			c.Address = v.Protocol
-			c.Id = v.Source
-			c.Name = v.Symbol
-			c.Symbol = v.Symbol
-			c.Decimals = new(big.Int).Set(v.Decimals)
-			provider.tokenMarketCaps[c.Address] = c
-		} else {
-			c := &CoinMarketCap{}
-			c.Address = v.Protocol
-			c.Id = v.Source
-			c.Name = v.Symbol
-			c.Symbol = v.Symbol
-			c.Decimals = new(big.Int).Set(v.Decimals)
-			provider.tokenMarketCaps[c.Address] = c
-			provider.idToAddress[strings.ToUpper(c.Id)] = c.Address
-		}
+		c := &CoinMarketCap{}
+		c.Address = v.Protocol
+		c.WebsiteSlug = v.Source
+		c.Name = v.Symbol
+		c.Symbol = v.Symbol
+		c.Decimals = new(big.Int).Set(v.Decimals)
+		provider.tokenMarketCaps[c.Address] = c
+		provider.slugToAddress[strings.ToUpper(c.WebsiteSlug)] = c.Address
+		//if "ARP" == v.Symbol || "VITE" == v.Symbol {
+		//	c := &CoinMarketCap{}
+		//	c.Address = v.Protocol
+		//	c.WebsiteSlug = v.Source
+		//	c.Name = v.Symbol
+		//	c.Symbol = v.Symbol
+		//	c.Decimals = new(big.Int).Set(v.Decimals)
+		//	provider.tokenMarketCaps[c.WebsiteSlug] = c
+		//} else {
+		//	c := &CoinMarketCap{}
+		//	c.Address = v.Protocol
+		//	c.WebsiteSlug = v.Source
+		//	c.Name = v.Symbol
+		//	c.Symbol = v.Symbol
+		//	c.Decimals = new(big.Int).Set(v.Decimals)
+		//	provider.tokenMarketCaps[c.Address] = c
+		//	provider.slugToAddress[strings.ToUpper(c.WebsiteSlug)] = c.Address
+		//}
 	}
 
 	if err := provider.syncMarketCapFromRedis(); nil != err {
