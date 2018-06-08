@@ -96,7 +96,8 @@ func (accessor *ethNodeAccessor) BatchTransactions(routeParam string, retry int,
 		if v.Error == nil && v.Result != nil {
 			if tx, ok := v.Result.(*relayethtyp.Transaction); ok && len(tx.Hash) > 0 {
 				hash := common.HexToHash(tx.Hash)
-				if !types.IsZeroHash(hash) {
+				blockhash := common.HexToHash(tx.BlockHash)
+				if !types.IsZeroHash(hash) && !types.IsZeroHash(blockhash) && tx.BlockNumber.BigInt().Int64() > 0 {
 					continue
 				}
 			}
@@ -145,7 +146,8 @@ func (accessor *ethNodeAccessor) BatchTransactionRecipients(routeParam string, r
 		if v.Error == nil && v.Result != nil && !reqs[idx].TxContent.StatusInvalid() {
 			if tx, ok := v.Result.(*relayethtyp.TransactionReceipt); ok && len(tx.TransactionHash) > 0 {
 				hash := common.HexToHash(tx.TransactionHash)
-				if !types.IsZeroHash(hash) {
+				blockhash := common.HexToHash(tx.BlockHash)
+				if !types.IsZeroHash(hash) && !types.IsZeroHash(blockhash) && tx.BlockNumber.BigInt().Int64() > 0 {
 					continue
 				}
 			}
@@ -232,7 +234,9 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 		if estimagetGas, _, err := EstimateGas(callData, to, "latest"); nil != err {
 			return txHash, nil, err
 		} else {
-			gas = estimagetGas
+			if nil == gas || gas.Cmp(big.NewInt(2000)) < 0 {
+				gas = estimagetGas
+			}
 		}
 	}
 	nonce := accessor.addressCurrentNonce(sender)
@@ -242,7 +246,7 @@ func (accessor *ethNodeAccessor) ContractSendTransactionByData(routeParam string
 	}
 	//todo:modify it
 	//if gas.Cmp(big.NewInt(int64(350000)))  {
-	gas.SetString("500000", 0)
+	//gas.SetString("400000", 0)
 	//}
 	transaction := ethTypes.NewTransaction(nonce.Uint64(),
 		common.HexToAddress(to.Hex()),
