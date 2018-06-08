@@ -60,7 +60,7 @@ type ZkBalancer struct {
 type Status int
 
 const (
-	Init      = iota
+	Init = iota
 	Assigned
 	Releasing
 	Deleting

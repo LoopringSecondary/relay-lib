@@ -96,7 +96,8 @@ func (accessor *ethNodeAccessor) BatchTransactions(routeParam string, retry int,
 		if v.Error == nil && v.Result != nil {
 			if tx, ok := v.Result.(*relayethtyp.Transaction); ok && len(tx.Hash) > 0 {
 				hash := common.HexToHash(tx.Hash)
-				if !types.IsZeroHash(hash) {
+				blockhash := common.HexToHash(tx.BlockHash)
+				if !types.IsZeroHash(hash) && !types.IsZeroHash(blockhash) {
 					continue
 				}
 			}
