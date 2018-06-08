@@ -81,11 +81,11 @@ func TestCapProvider_CoinMarketCap_Start(t *testing.T) {
 	provider.Start()
 	a := new(big.Rat)
 	a.SetString("2806326640744990")
-	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0x4d46AeA373Ea6a6EC6cBBF7f00724A6F61899C27"), a, "USD")
+	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), a, "USD")
 	if nil != err {
 		t.Errorf(err.Error())
 	} else {
-		println(f.FloatString(2))
+		t.Log(f.FloatString(2))
 	}
 
 	time.Sleep(11 * time.Second)
