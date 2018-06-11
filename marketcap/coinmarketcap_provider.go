@@ -97,9 +97,9 @@ func (cap *MarketCap) MarshalJSON() ([]byte, error) {
 
 type CoinMarketCap struct {
 	Id                int `json:"id"`
-	Address           common.Address `json:"address"`
+	Address           common.Address `json:"-"`
 	Name              string `json:"name"`
-	Symbol            string `json:"name"`
+	Symbol            string `json:"symbol"`
 	WebsiteSlug       string `json:"website_slug"`
 	Rank              int `json:"rank"`
 	CirculatingSupply float64 `json:"circulating_supply"`
@@ -365,7 +365,14 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 }
 
 func (p *CapProvider_CoinMarketCap) icoPriceTokens() []common.Address {
-	return []common.Address{}
+	tokenAddrs := []common.Address{}
+	for _,token := range util.AllTokens {
+		if nil != token.IcoPrice && token.IcoPrice.Cmp(big.NewRat(int64(0), int64(1))) > 0 {
+			tokenAddrs = append(tokenAddrs, token.Protocol)
+		}
+	}
+	//tokenAddrs = append(tokenAddrs, common.HexToAddress("0xbeb6fdf4ef6ceb975157be43cbe0047b248a8922"), common.HexToAddress("0x1b793E49237758dBD8b752AFC9Eb4b329d5Da016"))
+	return tokenAddrs
 }
 
 type MarketCapOptions struct {

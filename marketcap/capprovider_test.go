@@ -74,14 +74,14 @@ func TestCapProvider_CoinMarketCap_Start(t *testing.T) {
 	options := marketcap.MarketCapOptions{}
 	options.BaseUrl = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
 	options.Duration = 5
-	options.Currency = "USD"
+	options.Currency = "CNY"
 	options.IsSync = false
 	options.DustValue = new(big.Rat).SetFloat64(float64(1.0))
 	provider := marketcap.NewMarketCapProvider(&options)
 	provider.Start()
 	a := new(big.Rat)
-	a.SetString("2806326640744990")
-	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd0"), a, "USD")
+	a.SetString("28063266407449900000")
+	f, err := provider.LegalCurrencyValueByCurrency(common.HexToAddress("0x639687b7f8501f174356d3acb1972f749021ccd2"), a, "CNY")
 	if nil != err {
 		t.Errorf(err.Error())
 	} else {
