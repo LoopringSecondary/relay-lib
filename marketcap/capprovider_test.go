@@ -74,7 +74,7 @@ func TestCapProvider_CoinMarketCap_Start(t *testing.T) {
 	options := marketcap.MarketCapOptions{}
 	options.BaseUrl = "https://api.coinmarketcap.com/v2/ticker/?convert=%s&start=%d&limit=%d"
 	options.Duration = 5
-	options.Currency = "CNY"
+	options.Currency = "USD"
 	options.IsSync = false
 	options.DustValue = new(big.Rat).SetFloat64(float64(1.0))
 	provider := marketcap.NewMarketCapProvider(&options)

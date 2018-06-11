@@ -119,10 +119,21 @@ type CoinMarketCapResult struct {
 	} `json:"metadata"`
 }
 
+type noSupportTokens []common.Address
+
+func (tokens noSupportTokens) contains(addr common.Address) bool {
+	for _,token := range tokens {
+		if token == addr {
+			return true
+		}
+	}
+	return false
+}
+
 type CapProvider_CoinMarketCap struct {
 	baseUrl          string
 	tokenMarketCaps  map[common.Address]*CoinMarketCap
-	notSupportTokens []common.Address
+	notSupportTokens noSupportTokens
 	slugToAddress    map[string]common.Address
 	currency         string
 	duration         int
@@ -145,10 +156,14 @@ func (p *CapProvider_CoinMarketCap) LegalCurrencyValueByCurrency(tokenAddress co
 	} else {
 		v := new(big.Rat).SetInt(c.Decimals)
 		v.Quo(amount, v)
-		price, _ := p.GetMarketCapByCurrency(tokenAddress, currencyStr)
-		log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), c.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
-		v.Mul(price, v)
-		return v, nil
+		if price, err := p.GetMarketCapByCurrency(tokenAddress, currencyStr); nil != err {
+			log.Errorf("err:%s", err.Error())
+			return nil, err
+		} else {
+			log.Debugf("LegalCurrencyValueByCurrency token:%s,decimals:%s, amount:%s, currency:%s, price:%s", tokenAddress.Hex(), c.Decimals.String(), amount.FloatString(2), currencyStr, price.FloatString(2))
+			v.Mul(price, v)
+			return v, nil
+		}
 	}
 }
 
@@ -160,11 +175,44 @@ func (p *CapProvider_CoinMarketCap) GetEthCap() (*big.Rat, error) {
 	return p.GetMarketCapByCurrency(util.AllTokens["WETH"].Protocol, p.currency)
 }
 
+func (p *CapProvider_CoinMarketCap) getMarketCapFromRedis(websiteSlug string, currencyStr string) (cap *CoinMarketCap, err error) {
+	cap = &CoinMarketCap{}
+	if data, err := cache.Get(p.cacheKey(websiteSlug, currencyStr)); nil != err {
+		log.Errorf("err:%s", err.Error())
+		return nil, err
+	} else {
+		if err := json.Unmarshal(data, cap); nil != err {
+			log.Errorf("get marketcap of token err:%s", err.Error())
+			return nil, err
+		} else {
+			return cap, err
+		}
+	}
+}
+
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
 	if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
 		var v *big.Rat
-		if cap1, exists := c.Quotes[currencyStr]; exists {
-			v = cap1.Price
+		if quote, exists := c.Quotes[currencyStr]; exists {
+			v = quote.Price
+		} else {
+			if p.notSupportTokens.contains(tokenAddress) {
+				wethCap,err := p.getMarketCapFromRedis(util.AllTokens["WETH"].Source, currencyStr)
+				if nil == err {
+					if quote,exists := wethCap.Quotes[currencyStr]; exists {
+						v = new(big.Rat).Set(quote.Price)
+						v.Mul(v, util.AllTokens[c.Symbol].IcoPrice)
+					}
+				}
+			} else {
+				var err error
+				c,err = p.getMarketCapFromRedis(c.WebsiteSlug, currencyStr)
+				if nil == err {
+					if quote,exists := c.Quotes[currencyStr]; exists {
+						v = quote.Price
+					}
+				}
+			}
 		}
 		if v == nil {
 			return nil, errors.New("tokenCap is nil")
@@ -219,8 +267,12 @@ func (p *CapProvider_CoinMarketCap) heartBeatName() string {
 	return HEARTBEAT_COIN_MARKETCAP + p.currency
 }
 
-func (p *CapProvider_CoinMarketCap) cacheKey(websiteSlug string) string {
-	return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug)
+func (p *CapProvider_CoinMarketCap) cacheKey(websiteSlug string, currency string) string {
+	if "" != currency {
+		return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug) + "_" + currency
+	} else {
+		return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug) + "_" + p.currency
+	}
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
@@ -291,7 +343,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPI() error {
 							log.Errorf("err:%s", err2.Error())
 							return err2
 						} else {
-							err = cache.Set(p.cacheKey(cap1.WebsiteSlug), data, int64(43200))
+							err = cache.Set(p.cacheKey(cap1.WebsiteSlug, p.currency), data, int64(43200))
 							if nil != err {
 								log.Errorf("err:%s", err.Error())
 								return err
@@ -317,28 +369,21 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 	syncedFromApi := false
 
 	for tokenAddr, c1 := range p.tokenMarketCaps {
-		notSupportToken := false
-		for _, addr := range p.notSupportTokens {
-			if addr == tokenAddr {
-				notSupportToken = true
-			}
-		}
-		if notSupportToken {
+		if p.notSupportTokens.contains(tokenAddr) {
 			continue
 		}
-		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug))
+		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
 		if nil != err && !syncedFromApi {
 			if err1 := p.syncMarketCapFromAPI(); nil != err1 {
 				return err1
 			}
 			syncedFromApi = true
-			data, err = cache.Get(p.cacheKey(c1.WebsiteSlug))
+			data, err = cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
 		}
 		if nil != err {
 			log.Errorf("can't get marketcap of token:%s", tokenAddr.Hex())
 		} else {
 			c := &CoinMarketCap{}
-			println(tokenAddr.Hex(), string(data))
 			if err := json.Unmarshal(data, c); nil != err {
 				log.Errorf("get marketcap of token err:%s", err.Error())
 			} else {
