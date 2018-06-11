@@ -32,6 +32,7 @@ import (
 	"github.com/Loopring/relay-lib/cloudwatch"
 	"github.com/Loopring/relay-lib/log"
 	util "github.com/Loopring/relay-lib/marketutil"
+	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/ethereum/go-ethereum/common"
 	"net/http"
@@ -214,13 +215,20 @@ func (p *CapProvider_CoinMarketCap) zklockName() string {
 	return ZKNAME_COIN_MARKETCAP + p.currency
 }
 
+func (p *CapProvider_CoinMarketCap) heartBeatName() string {
+	return HEARTBEAT_COIN_MARKETCAP + p.currency
+}
+
 func (p *CapProvider_CoinMarketCap) cacheKey(websiteSlug string) string {
 	return CACHEKEY_COIN_MARKETCAP + strings.ToLower(websiteSlug)
 }
 
 func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
-	//todo:
-	zklock.TryLock(p.zklockName())
+	if err := zklock.TryLock(p.zklockName()); nil != err {
+		log.Errorf("err:%s", err.Error())
+		sns.PublishSns("marketcap failed", "try to get zklock err:"+err.Error())
+		return
+	}
 	log.Infof("MarketCap has gotten zklock....")
 	stopChan := make(chan bool)
 	p.stopFuncs = append(p.stopFuncs, func() {
@@ -231,9 +239,9 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 		for {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
-				log.Debugf("sync marketcap from api...")
+				log.Debugf("sync marketcap(key:%s) from api...", p.zklockName())
 				p.syncMarketCapFromAPI()
-				if err := cloudwatch.PutHeartBeatMetric(HEARTBEAT_COIN_MARKETCAP); nil != err {
+				if err := cloudwatch.PutHeartBeatMetric(p.heartBeatName()); nil != err {
 					log.Errorf("err:%s", err.Error())
 				}
 			case stopped := <-stopChan:
