@@ -27,7 +27,6 @@ import (
 	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
-	"golang.org/x/tools/go/gcimporter15/testdata"
 	"math/big"
 	"sort"
 )
