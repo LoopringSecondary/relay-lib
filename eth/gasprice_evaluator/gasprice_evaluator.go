@@ -24,8 +24,10 @@ import (
 	"github.com/Loopring/relay-lib/eth/accessor"
 	ethtyp "github.com/Loopring/relay-lib/eth/types"
 	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/sns"
 	"github.com/Loopring/relay-lib/types"
 	"github.com/Loopring/relay-lib/zklock"
+	"golang.org/x/tools/go/gcimporter15/testdata"
 	"math/big"
 	"sort"
 )
@@ -47,7 +49,11 @@ type GasPriceEvaluator struct {
 
 func (e *GasPriceEvaluator) start() {
 	log.Debugf("GasPriceEvaluator try to get zklock.")
-	zklock.TryLock(ZkName_Evaluated_GasPrice)
+	if err := zklock.TryLock(ZkName_Evaluated_GasPrice); nil != err {
+		log.Errorf("err:%s", err.Error())
+		sns.PublishSns("failed to evaluate gasprice ", "try to get zklock err:"+err.Error())
+		return
+	}
 	log.Debugf("GasPriceEvaluator has got zklock.")
 	var blockNumber types.Big
 	if err := accessor.BlockNumber(&blockNumber); nil == err {
