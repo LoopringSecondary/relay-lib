@@ -28,7 +28,6 @@ import (
 
 type LegalCurrency int
 
-
 func StringToLegalCurrency(currency string) LegalCurrency {
 	currency = strings.ToUpper(currency)
 	switch currency {
@@ -190,5 +189,3 @@ func (cap *MixMarketCap) GetEthCap() (*big.Rat, error) {
 func (cap *MixMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
 	return cap.selectCap(tokenAddress).GetMarketCapByCurrency(tokenAddress, currencyStr)
 }
-
-
