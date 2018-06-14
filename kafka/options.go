@@ -27,6 +27,7 @@ const (
 	Kafka_Topic_Miner_SubmitInfo_Prefix       = "Kafka_Topic_Miner_SubmitInfo_Prefix"
 
 	Kafka_Group_Extractor_PendingTransaction = "Kafka_Group_Extractor_PendingTransaction"
+	Kafka_Group_Extractor_AddToken           = "Kafka_Group_Extractor_AddToken"
 	Kafka_Group_RelayCluster_EventOnChain    = "Kafka_Group_RelayCluster_EventOnChain"
 	Kafka_Group_Extractor_EventOnChain       = "Kafka_Group_Extractor_EventOnChain"
 

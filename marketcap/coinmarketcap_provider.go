@@ -122,7 +122,7 @@ type CoinMarketCapResult struct {
 type noSupportTokens []common.Address
 
 func (tokens noSupportTokens) contains(addr common.Address) bool {
-	for _,token := range tokens {
+	for _, token := range tokens {
 		if token == addr {
 			return true
 		}
@@ -197,18 +197,18 @@ func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.A
 			v = quote.Price
 		} else {
 			if p.notSupportTokens.contains(tokenAddress) {
-				wethCap,err := p.getMarketCapFromRedis(util.AllTokens["WETH"].Source, currencyStr)
+				wethCap, err := p.getMarketCapFromRedis(util.AllTokens["WETH"].Source, currencyStr)
 				if nil == err {
-					if quote,exists := wethCap.Quotes[currencyStr]; exists {
+					if quote, exists := wethCap.Quotes[currencyStr]; exists {
 						v = new(big.Rat).Set(quote.Price)
 						v.Mul(v, util.AllTokens[c.Symbol].IcoPrice)
 					}
 				}
 			} else {
 				var err error
-				c,err = p.getMarketCapFromRedis(c.WebsiteSlug, currencyStr)
+				c, err = p.getMarketCapFromRedis(c.WebsiteSlug, currencyStr)
 				if nil == err {
-					if quote,exists := c.Quotes[currencyStr]; exists {
+					if quote, exists := c.Quotes[currencyStr]; exists {
 						v = quote.Price
 					}
 				}
