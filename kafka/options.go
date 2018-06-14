@@ -20,6 +20,7 @@ package kafka
 
 const (
 	Kafka_Topic_Extractor_PendingTransaction  = "Kafka_Topic_Extractor_PendingTransaction"
+	Kafka_Topic_Extractor_AddToken            = "Kafka_Topic_Extractor_AddToken"
 	Kafka_Topic_Extractor_EventOnChain        = "Kafka_Topic_Extractor_EventOnChain"
 	Kafka_Topic_AccountManager_BalanceUpdated = "Kafka_Topic_AccountManager_BalanceUpdated"
 	Kafka_Topic_RelayCluster_BlockEnd         = "Kafka_Topic_RelayCluster_BlockEnd"
