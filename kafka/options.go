@@ -44,5 +44,6 @@ const (
 	Kafka_Topic_SocketIO_BalanceUpdated      = "Kafka_Topic_SocketIO_BalanceUpdated"
 	Kafka_Topic_SocketIO_Transaction_Updated = "Kafka_Topic_SocketIO_Transactions_Updated"
 
-	Kafka_Topic_OrderManager_FlexCancelOrder = "Kafka_Topic_OrderManager_FlexCancelOrder"
+	Kafka_Topic_OrderManager_FlexCancelOrder  = "Kafka_Topic_OrderManager_FlexCancelOrder"
+	Kafka_Topic_orderManager_RingminedUpdated = "Kafka_Topic_orderManager_RingminedUpdated"
 )
