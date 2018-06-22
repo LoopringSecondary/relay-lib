@@ -18,28 +18,80 @@
 
 package broadcast
 
-var pubSubManager PubSubManager
+import (
+	"github.com/Loopring/relay-lib/log"
+	"github.com/Loopring/relay-lib/utils"
+	"sync"
+)
 
-type PubSubManager struct {
+var broadcaster *Broadcaster
+
+type Broadcaster struct {
+	publishers  []Publisher
+	subscribers []Subscriber
 }
 
-type Publisher struct {
-}
-type Subscriber struct {
-}
-
-type IPublisher interface {
-	pub() (err error)
+type Publisher interface {
+	Name() string
+	PubOrder(hash, orderData string) error
 }
 
-type ISubscriber interface {
-	sub() (err error)
+type Subscriber interface {
+	Name() string
+	Next() ([][]byte, error)
 }
 
-//func NewPubSubManager(cfg PubSubConfig) PubSubManager {
-//	return PubSubManager{}
-//}
+func PubOrder(hash, orderData string) map[string]error {
+	var (
+		errs    map[string]error
+		errsMtx sync.RWMutex
+		wg      sync.WaitGroup
+	)
+	errsMtx = sync.RWMutex{}
+	for _, publisher := range broadcaster.publishers {
+		wg.Add(1)
+		go func(publisher Publisher) {
+			defer func() {
+				wg.Add(-1)
+			}()
+			if err := publisher.PubOrder(hash, orderData); nil != err {
+				errsMtx.Lock()
+				if nil == errs {
+					errs = make(map[string]error)
+				}
+				errs[publisher.Name()] = err
+				errsMtx.Unlock()
+			}
+		}(publisher)
+	}
+	wg.Wait()
+	return errs
+}
 
-func (pb *PubSubManager) Start() {
+func SubOrderNext() (<-chan interface{}, error) {
+	in, out := utils.MakeInfinite()
+	for _, subscriber := range broadcaster.subscribers {
+		go func(subscriber Subscriber) {
+			for {
+				if ordersData, err := subscriber.Next(); nil == err {
+					for _, data := range ordersData {
+						in <- data
+					}
+				} else {
+					log.Errorf("occurs err:%s, when subscribing:%s order ", err.Error(), subscriber.Name())
+				}
+			}
+		}(subscriber)
+	}
+	return out, nil
+}
 
+func Initialize(publishers []Publisher, subscribers []Subscriber) {
+	broadcaster = &Broadcaster{}
+	broadcaster.publishers = publishers
+	broadcaster.subscribers = subscribers
+}
+
+func IsInit() bool {
+	return broadcaster != nil
 }
