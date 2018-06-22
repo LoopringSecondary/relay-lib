@@ -107,7 +107,7 @@ func NewSubscribers(options []MatrixSubscriberOption) ([]broadcast.Subscriber, e
 					subscriber.From = string(data)
 				}
 			} else {
-				subscriber.From = "s577993369_481306144_810852_142948493_62804057_416893_7794655_7040624_15020"
+				subscriber.From = ""
 			}
 			subscribers = append(subscribers, subscriber)
 		}

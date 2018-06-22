@@ -36,7 +36,7 @@ type MatrixPublisher struct {
 func (publisher *MatrixPublisher) PubOrder(hash string, orderData string) error {
 	var err error
 	for _, room := range publisher.Rooms {
-		if err1 := publisher.matrixClient.SendMessages(room, "m.room.message", hash, "m.text", orderData); nil != err1 {
+		if err1 := publisher.matrixClient.SendMessages(room, LoopringOrderType, hash, LoopringOrderType, orderData); nil != err1 {
 			if nil == err {
 				err = fmt.Errorf("%s:%s", publisher.matrixClient.HSUrl, err1.Error())
 			} else {
