@@ -18,17 +18,33 @@
 
 package broadcast
 
-import "github.com/Loopring/relay-lib/log"
+import (
+	"errors"
+	"github.com/Loopring/relay-lib/log"
+	"time"
+)
 
-type DefaultBroadcaster struct {
+type DefaultPublisher struct {
 }
 
-func (*DefaultBroadcaster) pub() (err error) {
+func (publisher *DefaultPublisher) PubOrder(hash, orderData string) error {
 	log.Debug("default broadcaster doesn't publish msg")
 	return nil
 }
 
-func (*DefaultBroadcaster) sub() (err error) {
+func (publisher *DefaultPublisher) Name() string {
+	return "defaultPublisher"
+}
+
+type DefaultSubscriber struct {
+}
+
+func (subscriber *DefaultSubscriber) Next() ([]byte, error) {
 	log.Debug("default broadcaster doesn't subscribe msg")
-	return nil
+	time.Sleep(10 * time.Minute)
+	return []byte{}, errors.New("default broadcaster doesn't subscribe msg")
+}
+
+func (subscriber *DefaultSubscriber) Name() string {
+	return "defaultSubscriber"
 }
