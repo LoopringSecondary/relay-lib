@@ -66,7 +66,9 @@ func (subscriber *MatrixSubscriber) Next() ([][]byte, error) {
 			return orderData, err
 		}
 		subscriber.From = res.End
-		cache.Set(CacheKeyLastFrom+subscriber.Room, []byte(subscriber.From), subscriber.CacheTtl)
+		if subscriber.CacheFrom {
+			cache.Set(CacheKeyLastFrom+subscriber.Room, []byte(subscriber.From), subscriber.CacheTtl)
+		}
 		if len(res.Chunk) == 0 {
 			time.Sleep(1 * time.Second)
 		} else {
