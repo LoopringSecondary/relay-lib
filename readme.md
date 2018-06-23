@@ -1,4 +1,4 @@
-# Relay Library
+# Relay Cluster Common Library
 
 Relay library contains common codes of all micro services like relay-cluster and extractor. Also other system can use those modules too. The module list in the library is :
 
