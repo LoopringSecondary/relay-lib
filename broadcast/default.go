@@ -27,7 +27,7 @@ import (
 type DefaultPublisher struct {
 }
 
-func (publisher *DefaultPublisher) PubOrder(hash, orderData string) error {
+func (publisher *DefaultPublisher) PubOrder(hash string, orderData []byte) error {
 	log.Debug("default broadcaster doesn't publish msg")
 	return nil
 }
