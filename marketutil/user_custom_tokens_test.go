@@ -29,6 +29,8 @@ import (
 	"testing"
 	//"time"
 	"github.com/Loopring/relay-lib/zklock"
+	"strings"
+	"time"
 )
 
 func TestGetCustomTokenList(t *testing.T) {
@@ -48,19 +50,26 @@ func TestGetCustomTokenList(t *testing.T) {
 
 	cache.NewCache(redis.RedisOptions{Host: "13.112.62.24", Port: "6379", Password: "", IdleTimeout: 20, MaxIdle: 50, MaxActive: 50})
 
-	address := common.HexToAddress("0X0B4C35F76AF1ACEBF52A8513255AE3FDA2E9D42B")
-	token := common.HexToAddress("0xbf78B6E180ba2d1404c92Fc546cbc9233f616C43")
-	symbol := "testX"
-	err := marketutil.AddToken(address, token, symbol)
-	fmt.Println(err)
+	address := common.HexToAddress("0X0B4C35F76AF1ACEBF52A8513255AE3FDA2E9D42C")
+	//token := common.HexToAddress("0xbf78B6E180ba2d1404c92Fc546cbc9233f616C43")
+	//symbol := "testX"
+	decimals := new(big.Int)
+	decimals.SetString("1"+strings.Repeat("0", 6), 0)
+	//err := marketutil.AddToken(address, marketutil.CustomToken{Symbol:symbol, Address:token, Decimals:decimals})
 
-	fmt.Println(marketutil.HadRegisted(address, common.HexToAddress("0xbf78B6E180ba2d1404c92Fc546cbc9233f616c43")))
-	//time.Sleep(1 * time.Second)
-	//fmt.Println(marketutil.GetCustomTokenList(address))
-	//tokens, err := marketutil.GetCustomTokenList(address)
-	//for k, v := range tokens {
-	//	fmt.Printf("k : %s, kk : %s, v : %s\n", k, v.Symbol, v.Address.Hex())
-	//}
-	//fmt.Println(err)
+	err := marketutil.AddToken(address, marketutil.CustomToken{Symbol: "LRN", Address: common.HexToAddress("0x1111B6E180ba2d1404c92Fc546cbc9233f616C43"), Decimals: decimals})
+	fmt.Println(err)
+	time.Sleep(1 * time.Second)
+	fmt.Println("---------->")
+	fmt.Println(marketutil.HadRegisted(common.HexToAddress("0x1111B6E180ba2d1404c92Fc546cbc9233f616C43")))
+	fmt.Println(marketutil.HadRegisted(common.HexToAddress("0x1111B6E180ba2d1404c92Fc546cbc9233f616C44")))
+	fmt.Println(marketutil.HadRegistedByAddress(address, common.HexToAddress("0x1111B6E180ba2d1404c92Fc546cbc9233f616C43")))
+	fmt.Println(marketutil.HadRegistedByAddress(common.HexToAddress("0X0B4C35F76AF1ACEBF52A8513255AE3FDA2E9D42B"), common.HexToAddress("0x1111B6E180ba2d1404c92Fc546cbc9233f616C43")))
+
+	tokens, err := marketutil.GetAllCustomTokenList()
+	for k, v := range tokens {
+		fmt.Printf("k : %s, kk : %s, v : %s, d : %d\n", k, v.Symbol, v.Address.Hex(), v.Decimals.Int64())
+	}
+	fmt.Println(err)
 
 }
