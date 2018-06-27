@@ -66,6 +66,7 @@ func (subscriber *MatrixSubscriber) Next() ([][]byte, error) {
 			return orderData, err
 		}
 		subscriber.From = res.End
+		log.Infof("current point: roomId: %s , end:%s ", subscriber.Room, res.End)
 		if subscriber.CacheFrom {
 			cache.Set(CacheKeyLastFrom+subscriber.Room, []byte(subscriber.From), subscriber.CacheTtl)
 		}
