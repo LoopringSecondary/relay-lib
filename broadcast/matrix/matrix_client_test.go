@@ -89,7 +89,9 @@ func TestMatrixClient_RoomMessages(t *testing.T) {
 }
 
 func TestMatrixClient_SendMessages(t *testing.T) {
-	if err1 := matrixClient.SendMessages("!RoJQgzCfBKHQznReRT:localhost", matrix.LoopringOrderType, "40", matrix.LoopringOrderType, "orderdata40"); nil != err1 {
+	if eventId,err1 := matrixClient.SendMessages("!RoJQgzCfBKHQznReRT:localhost", matrix.LoopringOrderType, "40", matrix.LoopringOrderType, "orderdata40"); nil != err1 {
 		t.Error(err1.Error())
+	} else {
+		t.Log(eventId)
 	}
 }
