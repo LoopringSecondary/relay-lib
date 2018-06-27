@@ -22,6 +22,7 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/utils"
 	"sync"
+	"encoding/json"
 )
 
 var broadcaster *Broadcaster
@@ -33,7 +34,7 @@ type Broadcaster struct {
 
 type Publisher interface {
 	Name() string
-	PubOrder(hash, orderData string) error
+	PubOrder(hash string, orderData []byte) error
 }
 
 type Subscriber interface {
@@ -41,7 +42,17 @@ type Subscriber interface {
 	Next() ([][]byte, error)
 }
 
-func PubOrder(hash, orderData string) map[string]error {
+type PubOrderError map[string]error
+
+func (err PubOrderError) Error() string {
+	if data,e := json.Marshal(err); nil == err {
+		return string(data)
+	} else {
+		return e.Error()
+	}
+}
+
+func PubOrder(hash string, orderData []byte) PubOrderError {
 	var (
 		errs    map[string]error
 		errsMtx sync.RWMutex
@@ -87,9 +98,11 @@ func SubOrderNext() (<-chan interface{}, error) {
 }
 
 func Initialize(publishers []Publisher, subscribers []Subscriber) {
-	broadcaster = &Broadcaster{}
-	broadcaster.publishers = publishers
-	broadcaster.subscribers = subscribers
+	if len(publishers) > 0 || len(subscribers) > 0 {
+		broadcaster = &Broadcaster{}
+		broadcaster.publishers = publishers
+		broadcaster.subscribers = subscribers
+	}
 }
 
 func IsInit() bool {
