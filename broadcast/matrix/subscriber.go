@@ -50,8 +50,10 @@ func (subscriber *MatrixSubscriber) Next() ([][]byte, error) {
 	orderData := [][]byte{}
 	eventTypes := []string{LoopringOrderType}
 	roomEventFilter := RoomEventFilter{
-		Types: eventTypes,
-		Rooms: []string{subscriber.Room},
+		NotSenders: []string{subscriber.matrixClient.UserId},
+		Types:      eventTypes,
+		Rooms:      []string{subscriber.Room},
+		Limit:      100,
 	}
 	filterStr, err := json.Marshal(roomEventFilter)
 	if nil != err {

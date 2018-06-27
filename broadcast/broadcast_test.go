@@ -27,11 +27,11 @@ import (
 	"github.com/Loopring/relay-lib/log"
 	"github.com/Loopring/relay-lib/types"
 	"go.uber.org/zap"
+	"math/big"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
-	"math/rand"
-	"math/big"
 )
 
 func init() {
