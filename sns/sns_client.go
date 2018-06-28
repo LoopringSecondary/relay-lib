@@ -53,7 +53,7 @@ var sc *SnsClient
 
 func Initialize(config SnsConfig) (*SnsClient, error) {
 	if !config.Enabled {
-		sc = &SnsClient{nil, nil, false}
+		sc = &SnsClient{nil, "", false}
 		return sc, nil
 	}
 	if len(config.SNSTopicArn) == 0 || len(config.Region) == 0 {
