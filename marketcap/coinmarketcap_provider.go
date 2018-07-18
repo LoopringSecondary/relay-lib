@@ -193,7 +193,9 @@ func (p *CapProvider_CoinMarketCap) getMarketCapFromRedis(websiteSlug string, cu
 }
 
 func (p *CapProvider_CoinMarketCap) GetMarketCapByCurrency(tokenAddress common.Address, currencyStr string) (*big.Rat, error) {
-	if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
+	if _,exists := p.notSupportTokens[tokenAddress]; exists {
+		return big.NewRat(int64(0), int64(1))
+	} else if c, exists := p.tokenMarketCaps[tokenAddress]; exists {
 		var v *big.Rat
 		if quote, exists := c.Quotes[currencyStr]; exists {
 			v = quote.Price
@@ -517,3 +519,9 @@ func (p *CapProvider_CoinMarketCap) IsOrderValueDust(state *types.OrderState) bo
 func (p *CapProvider_CoinMarketCap) IsValueDusted(value *big.Rat) bool {
 	return p.dustValue.Cmp(value) > 0
 }
+
+
+
+
+
+
