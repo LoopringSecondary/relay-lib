@@ -311,6 +311,10 @@ func AliasToAddress(t string) common.Address {
 	return AllTokens[t].Protocol
 }
 
+func AliasToSource(t string) string {
+	return AllTokens[t].Source
+}
+
 func AddressToAlias(t string) string {
 	for k, v := range AllTokens {
 		if strings.ToUpper(t) == strings.ToUpper(v.Protocol.Hex()) {
