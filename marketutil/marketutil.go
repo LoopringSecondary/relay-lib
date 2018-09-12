@@ -63,11 +63,13 @@ var (
 	SupportMarkets map[string]types.Token // token symbol to contract hex address
 	AllMarkets     []string
 	AllTokenPairs  []TokenPair
+	DisplayMarkets []types.Market
 	SymbolTokenMap map[common.Address]string
 )
 
 type MarketOptions struct {
 	TokenFile             string
+	MarketFile            string
 	OldVersionWethAddress string
 }
 
@@ -76,6 +78,9 @@ func StartRefreshCron(option *MarketOptions) {
 	mktCron.AddFunc("1 0/10 * * * *", func() {
 		log.Info("start market util refresh.....")
 		SupportTokens, SupportMarkets, AllTokens, AllMarkets, AllTokenPairs, SymbolTokenMap = getTokenAndMarketFromDB(option.TokenFile)
+	})
+	mktCron.AddFunc("1 0/10 * * * *", func() {
+		DisplayMarkets = getDisplayMarketsFromDB(option.MarketFile)
 	})
 	mktCron.Start()
 }
@@ -119,8 +124,8 @@ func getTokenAndMarketFromDB(tokenfile string) (
 	symbolTokenMap map[common.Address]string) {
 
 	supportTokens = make(map[string]types.Token)
-	allTokens = make(map[string]types.Token)
 	supportMarkets = make(map[string]types.Token)
+	allTokens = make(map[string]types.Token)
 	allMarkets = make([]string, 0)
 	allTokenPairs = make([]TokenPair, 0)
 	symbolTokenMap = make(map[common.Address]string)
@@ -194,15 +199,31 @@ func getTokenAndMarketFromDB(tokenfile string) (
 	return
 }
 
+func getDisplayMarketsFromDB(marketfile string) (displayMarkets []types.Market) {
+	fn, err := os.Open(marketfile)
+	if err != nil {
+		log.Fatalf("market util load markets failed:%s", err.Error())
+	}
+	bs, err := ioutil.ReadAll(fn)
+	if err != nil {
+		log.Fatalf("market util read markets json file failed:%s", err.Error())
+	}
+	if err := json.Unmarshal(bs, &displayMarkets); err != nil {
+		log.Fatalf("market util unmarshal tokens failed:%s", err.Error())
+	}
+	return
+}
+
 func Initialize(options *MarketOptions) {
 
 	SupportTokens = make(map[string]types.Token)
 	SupportMarkets = make(map[string]types.Token)
 	AllTokens = make(map[string]types.Token)
 	SymbolTokenMap = make(map[common.Address]string)
+	DisplayMarkets = make([]types.Market, 0)
 
 	SupportTokens, SupportMarkets, AllTokens, AllMarkets, AllTokenPairs, SymbolTokenMap = getTokenAndMarketFromDB(options.TokenFile)
-
+	DisplayMarkets = getDisplayMarketsFromDB(options.MarketFile)
 	// StartRefreshCron(rds)
 
 	//tokenRegisterWatcher := &eventemitter.Watcher{false, TokenRegister}
