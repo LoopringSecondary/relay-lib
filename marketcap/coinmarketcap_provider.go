@@ -252,9 +252,10 @@ func (p *CapProvider_CoinMarketCap) Start() {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap from redis...")
-				if err := p.syncMarketCapFromRedis(); nil != err {
-					log.Errorf("can't sync marketcap, time:%d", time.Now().Unix())
-				}
+				p.AddSyncFunc(
+					func() error {
+						return p.syncMarketCapFromRedis()
+					})
 			case stopped := <-stopChan:
 				if stopped {
 					return
@@ -406,6 +407,7 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromRedis() error {
 		data, err := cache.Get(p.cacheKey(c1.WebsiteSlug, p.currency))
 		if nil != err && !syncedFromApi {
 			if err1 := p.syncMarketCapFromAPI(); nil != err1 {
+				log.Errorf("can't sync marketcap, error :%s", err1.Error())
 				return err1
 			}
 			syncedFromApi = true
