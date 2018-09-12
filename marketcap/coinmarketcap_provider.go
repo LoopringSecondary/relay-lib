@@ -252,10 +252,9 @@ func (p *CapProvider_CoinMarketCap) Start() {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap from redis...")
-				p.AddSyncFunc(
-					func() error {
-						return p.syncMarketCapFromRedis()
-					})
+				if err := p.syncMarketCapFromRedis(); nil != err {
+					log.Errorf("can't sync marketcap, time:%d", time.Now().Unix())
+				}
 			case stopped := <-stopChan:
 				if stopped {
 					return
@@ -309,7 +308,10 @@ func (p *CapProvider_CoinMarketCap) syncMarketCapFromAPIWithZk() {
 			select {
 			case <-time.After(time.Duration(p.duration) * time.Minute):
 				log.Debugf("sync marketcap(key:%s) from api...", p.zklockName())
-				p.syncMarketCapFromAPI()
+				p.AddSyncFunc(
+					func() error {
+						return p.syncMarketCapFromAPI()
+					})
 				if err := cloudwatch.PutHeartBeatMetric(p.heartBeatName()); nil != err {
 					log.Errorf("err:%s", err.Error())
 				}
