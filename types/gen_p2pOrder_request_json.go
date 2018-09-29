@@ -8,7 +8,7 @@ import (
 	"math/big"
 
 	"github.com/Loopring/relay-lib/crypto"
-	"github.com/Loopring/relay-lib/vendor/github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ = (*p2pOrderJsonRequestMarshaling)(nil)
