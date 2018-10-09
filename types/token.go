@@ -37,6 +37,11 @@ type Token struct {
 	IcoPrice *big.Rat       `json:"icoPrice"`
 }
 
+type MarketPair struct {
+	Market   string `json:"Market"`
+	Decimals int    `json:"Decimals"`
+}
+
 type CurrencyMarketCap struct {
 	Id           string         `json:"id"`
 	Name         string         `json:"name"`
